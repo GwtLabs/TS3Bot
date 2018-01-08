@@ -1,0 +1,15 @@
+{
+  "Server": {
+    "Host": "localhost",
+    "Port": 9987,
+    "Query": {
+      "Port": 10011,
+      "Login": "serveradmin",
+      "Password": ""
+    }
+  },
+  "Bot": {
+    "Name": "[Bot] AutoPoke",
+    "DefaultChannelId": 2
+  }
+}
