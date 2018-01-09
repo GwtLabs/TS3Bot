@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using TS3Bot.Core.Config;
 using TS3Bot.Core.Extensions;
+using TS3Bot.Core.Model;
 
 namespace TS3Bot.Core
 {
@@ -25,6 +26,10 @@ namespace TS3Bot.Core
         private static readonly TS3BotCore instance = new TS3BotCore();
         private static List<Extension> extensions = new List<Extension>();
         private readonly Ts3BotConfig config;
+        private IQueryClient client;
+
+        //private Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
+        private List<ClientListEntry> clients = new List<ClientListEntry>();
 
         static TS3BotCore()
         {
@@ -85,6 +90,10 @@ namespace TS3Bot.Core
             notifications.UnknownNotificationReceived.Triggered += UnknownNotificationReceived_Triggered;
 
 
+            foreach (var extension in extensions)
+            {
+                extension.Init(this);
+            }
 
             foreach (var extension in extensions)
             {
@@ -93,7 +102,7 @@ namespace TS3Bot.Core
 
 
             // The client is configured to send a heartbeat every 30 seconds, the default is not to send a keep alive
-            IQueryClient client = new QueryClient(notificationHub: notifications, keepAliveInterval: TimeSpan.FromSeconds(30), host: config.Server.Host, port: config.Server.Query.Port);
+            client = new QueryClient(notificationHub: notifications, keepAliveInterval: TimeSpan.FromSeconds(30), host: config.Server.Host, port: config.Server.Query.Port);
             client.BanDetected += Client_BanDetected;
             client.ConnectionClosed += Client_ConnectionClosed;
             Connect(client);
@@ -110,6 +119,8 @@ namespace TS3Bot.Core
             Console.WriteLine("Register notify [TokenUsed]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TokenUsed).Execute(client).IsErroneous);
 
             Console.WriteLine("Type a command or press [ENTER] to quit");
+
+            UpdateServerData();
 
             do
             {
@@ -136,6 +147,20 @@ namespace TS3Bot.Core
             Console.WriteLine("Bye Bye!");
         }
 
+        private void UpdateServerData()
+        {
+            var response = new ClientListCommand(includeUniqueId: true).Execute(client);
+            if (response.IsErroneous)
+            {
+                return;
+            }
+            clients = (List<ClientListEntry>)response.Values;
+        }
+
+        public ClientListEntry GetClient(uint clid)
+        {
+            return clients.Where(c => c.ClientId == clid).First();
+        }
 
 
 

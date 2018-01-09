@@ -260,4 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 
-TS3Bot.Daemon/ts3bot.config.json
+TS3Bot.Daemon/ts3bot*.config.json

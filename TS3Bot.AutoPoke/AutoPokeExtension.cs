@@ -1,29 +1,49 @@
-﻿using System;
+﻿using TS3Bot.Core.Extensions;
+using TS3Bot.Ext.AutoPoke.DTO;
 using TS3QueryLib.Net.Core.Server.Notification;
 using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
+using System;
 using System.Collections.Generic;
-using TS3Bot.Ext.AutoPoke.DTO;
-using TS3Bot.Core.Extensions;
+using TS3Bot.Ext.AutoPoke.Model;
+using TS3QueryLib.Net.Core.Server.Entitities;
 
 namespace TS3Bot.Ext.AutoPoke
 {
     public class AutoPokeExtension : Extension
     {
+        public override string Name => "AutoPoke";
+
         private static ConfigDTO config;
+        private static Dictionary<uint, Channel> channels;
 
         public AutoPokeExtension()
         {
-            config = new ConfigDTO(true);
+            config = GetConfig<ConfigDTO>();
+        }
 
-            // TODO: ładować z pliku
-            config.Channels.Add(0, new List<ChannelDTO>() { new ChannelDTO(true) });
-            config.Channels.Add(1, new List<ChannelDTO>() { new ChannelDTO(true) });
+        private void LoadData()
+        {
+            foreach (var c in config.Channels)
+            {
+                channels.Add(c.Id, new Channel(c.Id));
+            }
+        }
 
-            config.Channels.Add(3, new List<ChannelDTO>() { new ChannelDTO(true) });
-            config.Channels.Add(4, new List<ChannelDTO>() { new ChannelDTO(true) });
-            config.Channels.Add(5, new List<ChannelDTO>() { new ChannelDTO(true) });
-            config.Channels.Add(6, new List<ChannelDTO>() { new ChannelDTO(true) });
-            config.Channels.Add(7, new List<ChannelDTO>() { new ChannelDTO(true) });
+        protected override void LoadDefaultConfig()
+        {
+            SetConfig(new ConfigDTO()
+            {
+                Enabled = true,
+                Channels = new List<ChannelDTO>() {
+                    new ChannelDTO() {
+                        Id = 2,
+                        Groups = new List<GroupDTO>() {
+                            { new GroupDTO() {Id=234, DelayAbsolute=0, DelayRelative=0} },
+                            { new GroupDTO() {Id=234, DelayAbsolute=0, DelayRelative=0} }
+                        }
+                    }
+                }
+            });
         }
 
         public override void RegisterNotifications(NotificationHub notifications)
@@ -48,10 +68,19 @@ namespace TS3Bot.Ext.AutoPoke
 
         private static void ClientJoinToChannel(object sender, ClientMovedEventArgs e)
         {
-            if (config.Channels.ContainsKey(e.TargetChannelId))
+            if (channels.ContainsKey(e.TargetChannelId))
             {
                 Console.WriteLine($"AutoPoke!!!! cid:{e.TargetChannelId}");
+
+                Channel ch = channels[e.TargetChannelId];
+
+                if (!ch.WasStaff)
+                {
+                    ClientListEntry client = data.GetClient(e.ClientId);
+                    ch.Join(client);
+                }
             }
         }
+
     }
 }
