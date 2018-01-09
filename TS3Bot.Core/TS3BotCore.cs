@@ -18,6 +18,8 @@ using Microsoft.Extensions.Configuration;
 using TS3Bot.Core.Config;
 using TS3Bot.Core.Extensions;
 using TS3Bot.Core.Model;
+using TS3Bot.Core.Services;
+using TS3Bot.Core.Mappers;
 
 namespace TS3Bot.Core
 {
@@ -28,8 +30,6 @@ namespace TS3Bot.Core
         private readonly Ts3BotConfig config;
         private IQueryClient client;
 
-        //private Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
-        private List<ClientListEntry> clients = new List<ClientListEntry>();
 
         static TS3BotCore()
         {
@@ -57,6 +57,8 @@ namespace TS3Bot.Core
 
             //var moduleSettings = new PokeBot();
             //configuration.GetSection("PokeBot").Bind(moduleSettings);
+
+            AutoMapperConfig.Initialize();
         }
 
         public void AddExtension(Extension ext)
@@ -92,11 +94,6 @@ namespace TS3Bot.Core
 
             foreach (var extension in extensions)
             {
-                extension.Init(this);
-            }
-
-            foreach (var extension in extensions)
-            {
                 extension.RegisterNotifications(notifications);
             }
 
@@ -120,7 +117,14 @@ namespace TS3Bot.Core
 
             Console.WriteLine("Type a command or press [ENTER] to quit");
 
-            UpdateServerData();
+
+            ServerService server = new ServerService(client);
+            foreach (var extension in extensions)
+            {
+                extension.Configure(server);
+            }
+
+            server.UpdateServerData();
 
             do
             {
@@ -147,20 +151,7 @@ namespace TS3Bot.Core
             Console.WriteLine("Bye Bye!");
         }
 
-        private void UpdateServerData()
-        {
-            var response = new ClientListCommand(includeUniqueId: true).Execute(client);
-            if (response.IsErroneous)
-            {
-                return;
-            }
-            clients = (List<ClientListEntry>)response.Values;
-        }
 
-        public ClientListEntry GetClient(uint clid)
-        {
-            return clients.Where(c => c.ClientId == clid).First();
-        }
 
 
 

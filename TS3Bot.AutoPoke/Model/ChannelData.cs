@@ -5,20 +5,20 @@ using TS3QueryLib.Net.Core.Server.Entitities;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
-    class Channel
+    class ChannelData
     {
         public uint Id { get; }
         public bool WasStaff { get; }
-        public List<Client> Clients { get; } = new List<Client>();
+        public List<ClientData> Clients { get; } = new List<ClientData>();
 
-        public Channel(uint id)
+        public ChannelData(uint id)
         {
             Id = id;
         }
 
         public void Join(ClientListEntry client)
         {
-            Clients.Add(new Client(id: client.ClientId));
+            Clients.Add(new ClientData(id: client.ClientId));
         }
     }
 }

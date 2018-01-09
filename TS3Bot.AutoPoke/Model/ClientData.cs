@@ -4,12 +4,12 @@ using System.Text;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
-    public class Client
+    public class ClientData
     {
         private bool IsStaff { get; } = false;
         private uint Id { get; }
 
-        public Client(uint id)
+        public ClientData(uint id)
         {
             Id = id;
         }
