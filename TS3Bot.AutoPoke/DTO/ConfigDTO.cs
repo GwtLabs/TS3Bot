@@ -9,11 +9,5 @@ namespace TS3Bot.Ext.AutoPoke.DTO
     {
         public bool Enabled { get; set; } = true;
         public List<ChannelDTO> Channels = new List<ChannelDTO>();
-
-        //public ConfigDTO(bool Initialization = false)
-        //{
-        //    if (Initialization)
-        //        Channels.Add(2, new List<ChannelDTO>() { new ChannelDTO(Initialization) });
-        //}
     }
 }

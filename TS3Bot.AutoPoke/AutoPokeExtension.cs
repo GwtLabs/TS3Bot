@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using TS3Bot.Ext.AutoPoke.Model;
 using TS3QueryLib.Net.Core.Server.Entitities;
 using TS3Bot.Ext.AutoPoke.Mappers;
+using AutoMapper;
 
 namespace TS3Bot.Ext.AutoPoke
 {
@@ -15,20 +16,21 @@ namespace TS3Bot.Ext.AutoPoke
         public override string Name => "AutoPoke";
 
         private static ConfigDTO config;
+        private static IMapper mapper;
         private static Dictionary<uint, ChannelData> channels;
 
         public AutoPokeExtension()
         {
             config = GetConfig<ConfigDTO>();
 
-            AutoMapperConfig.Initialize();
+            mapper = AutoMapperConfig.Initialize();
         }
 
         private void LoadData()
         {
             foreach (var c in config.Channels)
             {
-                channels.Add(c.Id, new ChannelData(c.Id));
+                channels.Add(c.Id, mapper.Map<ChannelData>(c));
             }
         }
 
@@ -40,7 +42,7 @@ namespace TS3Bot.Ext.AutoPoke
                 Channels = new List<ChannelDTO>() {
                     new ChannelDTO() {
                         Id = 2,
-                        Groups = new List<GroupDTO>() {
+                        StaffGroups = new List<GroupDTO>() {
                             { new GroupDTO() {Id=234, DelayAbsolute=0, DelayRelative=0} },
                             { new GroupDTO() {Id=234, DelayAbsolute=0, DelayRelative=0} }
                         }

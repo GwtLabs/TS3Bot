@@ -10,6 +10,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
         public uint Id { get; }
         public bool WasStaff { get; }
         public List<ClientData> Clients { get; } = new List<ClientData>();
+        public List<GroupData> StaffGroups { get; } = new List<GroupData>();
 
         public ChannelData(uint id)
         {
