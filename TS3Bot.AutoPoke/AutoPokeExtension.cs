@@ -79,7 +79,7 @@ namespace TS3Bot.Ext.AutoPoke
 
                 if (!ch.WasStaff)
                 {
-                    ClientListEntry client = server.GetClient(e.ClientId);
+                    ClientListEntry client = Server.GetClient(e.ClientId);
                     ch.Join(client);
                 }
             }

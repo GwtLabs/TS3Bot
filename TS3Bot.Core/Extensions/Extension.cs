@@ -16,19 +16,13 @@ namespace TS3Bot.Core.Extensions
 
         public abstract string Name { get; }
 
+        public static ServerService Server;
+
         private static IConfig config;
-        //public static TS3BotCore data;
-        public static ServerService server;
 
         public void Configure(ServerService serverService)
         {
-            server = serverService;
-            //if (!ExtConfig.Exists(Name))
-            //{
-            //    LoadDefaultConfig();
-            //    SaveConfig();
-            //}
-            //LoadConfig();
+            Server = serverService;
         }
 
         protected void SaveConfig()
@@ -49,15 +43,6 @@ namespace TS3Bot.Core.Extensions
         {
             config = cfg;
         }
-
-        //private void LoadConfig()
-        //{
-        //    if (!ExtConfig.Exists(Name))
-        //    {
-        //        LoadDefaultConfig();
-        //        SaveConfig();
-        //    }
-        //}
 
         private void InitConfig<T>()
         {
