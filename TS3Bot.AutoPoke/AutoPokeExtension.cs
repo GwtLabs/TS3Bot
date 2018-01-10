@@ -17,23 +17,23 @@ namespace TS3Bot.Ext.AutoPoke
 
         private static ConfigDTO config;
         private static IMapper mapper;
-        private static Dictionary<uint, ChannelData> channels;
+        private static ChannelService channelService;
 
         public AutoPokeExtension()
         {
             config = GetConfig<ConfigDTO>();
-
-            mapper = AutoMapperConfig.Initialize();
-        }
-
-        private void LoadData()
-        {
-            foreach (var c in config.Channels)
+            if (config.Enabled)
             {
-                channels.Add(c.Id, mapper.Map<ChannelData>(c));
+                mapper = AutoMapperConfig.Initialize();
+                channelService = new ChannelService(Server);
+
+                foreach (var c in config.Channels)
+                {
+                    channelService.AddChannel(mapper.Map<ChannelDTO, ChannelData>(c));
+                }
             }
         }
-
+        
         protected override void LoadDefaultConfig()
         {
             SetConfig(new ConfigDTO()
@@ -44,7 +44,7 @@ namespace TS3Bot.Ext.AutoPoke
                         Id = 2,
                         StaffGroups = new List<GroupDTO>() {
                             { new GroupDTO() {Id=234, DelayAbsolute=0, DelayRelative=0} },
-                            { new GroupDTO() {Id=234, DelayAbsolute=0, DelayRelative=0} }
+                            { new GroupDTO() {Id=235, DelayAbsolute=0, DelayRelative=0} }
                         }
                     }
                 }
@@ -56,7 +56,6 @@ namespace TS3Bot.Ext.AutoPoke
             notifications.ClientMoved.JoiningChannel += ClientMoved_JoiningChannel;
             notifications.ClientMoved.JoiningChannelForced += ClientMoved_JoiningChannelForced;
         }
-
 
         private static void ClientMoved_JoiningChannelForced(object sender, ClientMovedByClientEventArgs e)
         {
@@ -73,19 +72,7 @@ namespace TS3Bot.Ext.AutoPoke
 
         private static void ClientJoinToChannel(object sender, ClientMovedEventArgs e)
         {
-            if (channels.ContainsKey(e.TargetChannelId))
-            {
-                Console.WriteLine($"AutoPoke!!!! cid:{e.TargetChannelId}");
-
-                ChannelData ch = channels[e.TargetChannelId];
-
-                if (!ch.WasStaff)
-                {
-                    ClientListEntry client = Server.GetClient(e.ClientId);
-                    ch.Join(client);
-                }
-            }
+            channelService.Join(e);
         }
-
     }
 }

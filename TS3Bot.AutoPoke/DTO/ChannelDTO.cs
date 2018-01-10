@@ -7,6 +7,6 @@ namespace TS3Bot.Ext.AutoPoke.DTO
     public class ChannelDTO
     {
         public uint Id { get; set; }
-        public List<GroupDTO> StaffGroups = new List<GroupDTO>();
+        public List<GroupDTO> StaffGroups;
     }
 }

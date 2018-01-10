@@ -5,12 +5,13 @@ using TS3QueryLib.Net.Core.Server.Entitities;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
-    class ChannelData
+    public class ChannelData
     {
         public uint Id { get; }
-        public bool WasStaff { get; }
+        public bool NeedHelp { get; private set; } = false;
+        public bool WasStaff { get; private set; } = false;
         public List<ClientData> Clients { get; } = new List<ClientData>();
-        public List<GroupData> StaffGroups { get; } = new List<GroupData>();
+        public List<GroupData> StaffGroups { get; set; } = new List<GroupData>();
 
         public ChannelData(uint id)
         {
@@ -19,7 +20,23 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
         public void Join(ClientListEntry client)
         {
-            Clients.Add(new ClientData(id: client.ClientId));
+            ClientData clid;
+            if (StaffGroups.Exists(g => client.ServerGroups.Contains(g.Id)))
+            {
+                WasStaff = true;
+                clid = new ClientData(id: client.ClientId, isStaff: true);
+                NeedHelp = false;
+            }
+            else
+            {
+                clid = new ClientData(id: client.ClientId);
+                if (!NeedHelp)
+                {
+                    NeedHelp = true;
+                }
+            }
+
+            Clients.Add(clid);
         }
     }
 }
