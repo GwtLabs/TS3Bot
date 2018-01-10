@@ -6,8 +6,8 @@ namespace TS3Bot.Ext.AutoPoke.Model
 {
     public class ClientData
     {
-        private bool IsStaff { get; } = false;
-        private uint Id { get; }
+        public bool IsStaff { get; } = false;
+        public uint Id { get; }
 
         public ClientData(uint id, bool isStaff = false)
         {

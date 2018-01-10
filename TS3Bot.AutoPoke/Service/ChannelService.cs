@@ -6,8 +6,10 @@ using System.Timers;
 using TS3Bot.Core.Model;
 using TS3Bot.Core.Services;
 using TS3Bot.Ext.AutoPoke.DTO;
+using TS3QueryLib.Net.Core.Server.Commands;
 using TS3QueryLib.Net.Core.Server.Entitities;
 using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
+using TS3QueryLib.Net.Core.Common.CommandHandling;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
@@ -58,13 +60,24 @@ namespace TS3Bot.Ext.AutoPoke.Model
                 t.Interval = 1000;
                 t.Enabled = true;
                 t.Elapsed += delegate { ChannelTick(channel); };
-                timers.Add(channel.Id, t);
+                try
+                {
+                    timers.Add(channel.Id, t);
+                }
+                catch (Exception e)
+                {
+                    new Exception();
+                }
             }
         }
 
         private void ChannelTick(ChannelData ch)
         {
-            Server.GetClient(87);
+            //Server.GetClient(87);
+            foreach (var c in ch.Clients)
+            {
+                new SendTextMessageCommand(MessageTarget.Client, c.Id, "Wait a moment, someone will come to soon.");
+            }
         }
     }
 }
