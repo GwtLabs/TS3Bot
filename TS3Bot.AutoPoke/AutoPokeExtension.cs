@@ -72,7 +72,7 @@ namespace TS3Bot.Ext.AutoPoke
 
         private static void ClientJoinToChannel(object sender, ClientMovedEventArgs e)
         {
-            channelService.Join(e);
+            channelService.ClientMoved(e);
         }
     }
 }

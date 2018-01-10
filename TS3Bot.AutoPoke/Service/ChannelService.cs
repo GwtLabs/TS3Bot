@@ -27,7 +27,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
             channels.Add(channel.Id, channel);
         }
 
-        public void Join(ClientMovedEventArgs e)
+        public void ClientMoved(ClientMovedEventArgs e)
         {
             if (channels.ContainsKey(e.TargetChannelId))
             {
@@ -46,6 +46,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
                 {
                     InitializeTimer(ch);
                 }
+                return;
             }
         }
 
@@ -54,7 +55,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
             if (!timers.ContainsKey(channel.Id))
             {
                 Timer t = new Timer();
-                t.Interval = 750;
+                t.Interval = 1000;
                 t.Enabled = true;
                 t.Elapsed += delegate { ChannelTick(channel); };
                 timers.Add(channel.Id, t);
