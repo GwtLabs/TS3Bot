@@ -9,9 +9,10 @@ namespace TS3Bot.Ext.AutoPoke.Model
         private bool IsStaff { get; } = false;
         private uint Id { get; }
 
-        public ClientData(uint id)
+        public ClientData(uint id, bool isStaff = false)
         {
             Id = id;
+            IsStaff = isStaff;
         }
     }
 }
