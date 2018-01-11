@@ -63,7 +63,6 @@ namespace TS3Bot.Ext.AutoPoke
 
         private static void ClientMoved_JoiningChannelForced(object sender, ClientMovedByClientEventArgs e)
         {
-            Console.WriteLine($"AutoPoke Move: Type=Forced, ClientId={e.ClientId}, TargetChannelId={e.TargetChannelId}, Invoker={e.InvokerNickname}");
             ClientJoinToChannel(sender, e);
         }
 

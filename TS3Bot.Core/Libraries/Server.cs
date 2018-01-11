@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using TS3Bot.Core.Mappers;
 using TS3Bot.Core.Model;
 using TS3QueryLib.Net.Core;
@@ -83,7 +81,6 @@ namespace TS3Bot.Core.Libraries
 
         public static Client GetClient(uint clid)
         {
-            //return clients.Where(c => c.Value.ClientId == clid).First().Value;
             return clients.ContainsKey(clid) ? clients[clid] : null;
         }
 
@@ -164,7 +161,7 @@ namespace TS3Bot.Core.Libraries
 
                 if (clients.ContainsKey(e.ClientId))
                 {
-                    // TODO: pobrać więcej danych, albo oznaczyć, że wymaga aktualizacji grup kanałowych itd
+                    // TODO: pobrać więcej danych, albo oznaczyć, że wymaga aktualizacji grup kanałowych itp..
                     clients[e.ClientId].MovedToChannel(e.TargetChannelId);
                 }
             }
