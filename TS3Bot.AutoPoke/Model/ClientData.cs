@@ -4,6 +4,7 @@
     {
         public bool IsStaff { get; } = false;
         public uint Id { get; }
+        public ChannelData channel { get; set; }
 
         public ClientData(uint id, bool isStaff = false)
         {

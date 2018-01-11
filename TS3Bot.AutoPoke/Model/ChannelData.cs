@@ -11,7 +11,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
         public bool NeedHelp { get; private set; } = false;
         public bool WasStaff { get; private set; } = false;
         public List<ClientData> Clients { get; } = new List<ClientData>();
-        public List<GroupData> StaffGroups { get; set; } = new List<GroupData>();
+        public List<StaffGroupData> StaffGroups { get; set; } = new List<StaffGroupData>();
 
         public ChannelData(uint id)
         {
@@ -20,23 +20,23 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
         public void Join(ClientListEntry client)
         {
-            ClientData clid;
+            ClientData cld;
             if (StaffGroups.Exists(g => client.ServerGroups.Contains(g.Id)))
             {
                 WasStaff = true;
-                clid = new ClientData(id: client.ClientId, isStaff: true);
+                cld = new ClientData(id: client.ClientId, isStaff: true);
                 NeedHelp = false;
             }
             else
             {
-                clid = new ClientData(id: client.ClientId);
+                cld = new ClientData(id: client.ClientId);
                 if (!NeedHelp)
                 {
                     NeedHelp = true;
                 }
             }
 
-            Clients.Add(clid);
+            Clients.Add(cld);
         }
     }
 }

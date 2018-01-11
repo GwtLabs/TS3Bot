@@ -9,14 +9,16 @@ using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
 using TS3QueryLib.Net.Core.Common.CommandHandling;
 using TS3Bot.Core;
 using TS3Bot.Core.Libraries;
+using System.Linq;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
     class ChannelService
     {
-        private Dictionary<uint, Timer> timers = new Dictionary<uint, Timer>();
-        private static Dictionary<uint, ChannelData> channels = new Dictionary<uint, ChannelData>();
         private Server Server = Interface.TS3Bot.GetLibrary<Server>();
+        private IDictionary<uint, Timer> timers = new Dictionary<uint, Timer>();
+        private IDictionary<uint, ChannelData> channels = new Dictionary<uint, ChannelData>();
+        private IDictionary<uint, ClientData> clients = new Dictionary<uint, ClientData>();
 
         public ChannelService()
         {
@@ -29,8 +31,16 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
         public void ClientMoved(ClientMovedEventArgs e)
         {
+            // czy klient był na obserwowanym kanale
+            if (WasOnTackedChannel(e.ClientId))
+            {
+                //LeftTrackedChannel(e.ClientId);
+            }
+
             if (channels.ContainsKey(e.TargetChannelId))
             {
+                Console.WriteLine($"{DateTime.Now}: {e.ClientId} - On target channel {e.TargetChannelId}.");
+
                 ChannelData ch = channels[e.TargetChannelId];
 
                 if (ch.WasStaff)
@@ -50,12 +60,23 @@ namespace TS3Bot.Ext.AutoPoke.Model
             }
         }
 
+        private bool WasOnTackedChannel(uint clid)
+        {
+            return channels.Any(c => c.Value.Clients.Any(cl => cl.Id == clid));
+        }
+
+        private void LeftTrackedChannel()
+        {
+            //channels.Rem
+            //channels.Where(c => c.Value.)
+        }
+
         private void InitializeTimer(ChannelData channel)
         {
             if (!timers.ContainsKey(channel.Id))
             {
                 Timer t = new Timer();
-                t.Interval = 1000;
+                t.Interval = 10000;
                 t.Enabled = true;
                 t.Elapsed += delegate { ChannelTick(channel); };
                 //try
@@ -74,7 +95,8 @@ namespace TS3Bot.Ext.AutoPoke.Model
             //Server.GetClient(87);
             foreach (var c in ch.Clients)
             {
-                new SendTextMessageCommand(MessageTarget.Client, c.Id, "Wait a moment, someone will come to soon.");
+                //new SendTextMessageCommand(MessageTarget.Client, c.Id, "Wait a moment, someone will come to soon.");
+                Console.WriteLine($"{DateTime.Now}: {c.Id} - Wait a moment, someone will come to soon.");
             }
         }
     }

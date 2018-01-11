@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using TS3QueryLib.Net.Core;
@@ -10,14 +9,9 @@ using TS3QueryLib.Net.Core.Server.Entitities;
 using TS3QueryLib.Net.Core.Server.Notification;
 using ea = TS3QueryLib.Net.Core.Server.Notification.EventArgs;
 using TS3QueryLib.Net.Core.Server.Responses;
-using System.Configuration;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using TS3Bot.Core.Configuration;
 using TS3Bot.Core.Extensions;
-using TS3Bot.Core.Model;
-using TS3Bot.Core.Mappers;
 using TS3Bot.Core.Libraries;
 
 namespace TS3Bot.Core
@@ -25,7 +19,6 @@ namespace TS3Bot.Core
     public sealed class TS3Bot
     {
         private ExtensionManager extensionManager;
-        private static List<Extension> extensions = new List<Extension>();
         private Ts3BotConfig config;
 
         public IQueryClient QueryClient;
@@ -52,8 +45,6 @@ namespace TS3Bot.Core
             //var moduleSettings = new PokeBot();
             //configuration.GetSection("PokeBot").Bind(moduleSettings);
 
-            AutoMapperConfig.Initialize();
-
 
             extensionManager = new ExtensionManager();
 
@@ -64,7 +55,7 @@ namespace TS3Bot.Core
 
         public void AddExtension(Extension ext)
         {
-            extensions.Add(ext);
+            extensionManager.AddExtension(ext);
         }
 
         public void Run()
@@ -92,11 +83,7 @@ namespace TS3Bot.Core
             notifications.ServerEdited.Triggered += ServerEdited_Triggered;
             notifications.UnknownNotificationReceived.Triggered += UnknownNotificationReceived_Triggered;
 
-
-            foreach (var extension in extensions)
-            {
-                extension.RegisterNotifications(notifications);
-            }
+            extensionManager.RegisterNotifications(notifications);
 
 
             // The client is configured to send a heartbeat every 30 seconds, the default is not to send a keep alive
@@ -117,7 +104,7 @@ namespace TS3Bot.Core
             Console.WriteLine("Register notify [TokenUsed]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TokenUsed).Execute(QueryClient).IsErroneous);
 
             Console.WriteLine("Type a command or press [ENTER] to quit");
-            
+
 
             Interface.TS3Bot.GetLibrary<Server>().UpdateServerData();
 

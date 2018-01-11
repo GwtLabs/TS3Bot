@@ -18,12 +18,17 @@ namespace TS3Bot.Ext.AutoPoke
         private static IMapper mapper;
         private static ChannelService channelService;
 
+        private static IDictionary<uint, bool> events;
+        private static Object eventLock = new Object();
+
         public AutoPokeExtension()
         {
             config = GetConfig<ConfigDTO>();
             if (config.Enabled)
             {
                 mapper = AutoMapperConfig.Initialize();
+
+                events = new Dictionary<uint, bool>();
                 channelService = new ChannelService();
 
                 foreach (var c in config.Channels)
@@ -62,16 +67,24 @@ namespace TS3Bot.Ext.AutoPoke
             ClientJoinToChannel(sender, e);
         }
 
-
         private static void ClientMoved_JoiningChannel(object sender, ClientMovedEventArgs e)
         {
-            Console.WriteLine($"AutoPoke Move: Type=Self, ClientId={e.ClientId}, TargetChannelId={e.TargetChannelId}");
             ClientJoinToChannel(sender, e);
         }
 
         private static void ClientJoinToChannel(object sender, ClientMovedEventArgs e)
         {
-            channelService.ClientMoved(e);
+            lock (eventLock)
+            {
+                if (events.ContainsKey(e.ClientId))
+                {
+                    events.Remove(e.ClientId);
+                    return;
+                }
+                events.Add(e.ClientId, true);
+
+                channelService.ClientMoved(e);
+            }
         }
     }
 }

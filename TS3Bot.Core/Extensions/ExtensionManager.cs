@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using TS3Bot.Core.Libraries;
+using TS3QueryLib.Net.Core.Server.Notification;
 
 namespace TS3Bot.Core.Extensions
 {
     public sealed class ExtensionManager
     {
+        // All registered extensions
         private IList<Extension> extensions;
 
         // All registered libraries
@@ -17,6 +19,11 @@ namespace TS3Bot.Core.Extensions
             // Initialize
             extensions = new List<Extension>();
             libraries = new Dictionary<string, Library>();
+        }
+
+        public void AddExtension(Extension ext)
+        {
+            extensions.Add(ext);
         }
 
         /// <summary>
@@ -48,6 +55,18 @@ namespace TS3Bot.Core.Extensions
         {
             Library lib;
             return !libraries.TryGetValue(name, out lib) ? null : lib;
+        }
+
+        public void RegisterNotifications(NotificationHub notifications)
+        {
+            foreach (var e in libraries)
+            {
+                e.Value.RegisterNotifications(notifications);
+            }
+            foreach (var e in extensions)
+            {
+                e.RegisterNotifications(notifications);
+            }
         }
     }
 }
