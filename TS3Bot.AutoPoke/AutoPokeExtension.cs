@@ -25,7 +25,7 @@ namespace TS3Bot.Ext.AutoPoke
             if (config.Enabled)
             {
                 mapper = AutoMapperConfig.Initialize();
-                channelService = new ChannelService(Server);
+                channelService = new ChannelService();
 
                 foreach (var c in config.Channels)
                 {
@@ -33,7 +33,7 @@ namespace TS3Bot.Ext.AutoPoke
                 }
             }
         }
-        
+
         protected override void LoadDefaultConfig()
         {
             SetConfig(new ConfigDTO()

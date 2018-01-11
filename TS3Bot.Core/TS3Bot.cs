@@ -17,7 +17,6 @@ using Microsoft.Extensions.Configuration;
 using TS3Bot.Core.Configuration;
 using TS3Bot.Core.Extensions;
 using TS3Bot.Core.Model;
-using TS3Bot.Core.Services;
 using TS3Bot.Core.Mappers;
 using TS3Bot.Core.Libraries;
 
@@ -28,7 +27,8 @@ namespace TS3Bot.Core
         private ExtensionManager extensionManager;
         private static List<Extension> extensions = new List<Extension>();
         private Ts3BotConfig config;
-        private IQueryClient client;
+
+        public IQueryClient QueryClient;
 
         public TS3Bot()
         {
@@ -100,32 +100,26 @@ namespace TS3Bot.Core
 
 
             // The client is configured to send a heartbeat every 30 seconds, the default is not to send a keep alive
-            client = new QueryClient(notificationHub: notifications, keepAliveInterval: TimeSpan.FromSeconds(30), host: config.Server.Host, port: config.Server.Query.Port);
-            client.BanDetected += Client_BanDetected;
-            client.ConnectionClosed += Client_ConnectionClosed;
-            Connect(client);
+            QueryClient = new QueryClient(notificationHub: notifications, keepAliveInterval: TimeSpan.FromSeconds(30), host: config.Server.Host, port: config.Server.Query.Port);
+            QueryClient.BanDetected += Client_BanDetected;
+            QueryClient.ConnectionClosed += Client_ConnectionClosed;
+            Connect(QueryClient);
 
             // username and password are random and only valid on my dev box. So dont bother
-            Console.WriteLine("Admin login:" + !new LoginCommand(config.Server.Query.Login, config.Server.Query.Password).Execute(client).IsErroneous);
-            Console.WriteLine("Switch to server with port 9987: " + !new UseCommand(config.Server.Port).Execute(client).IsErroneous);
+            Console.WriteLine("Admin login:" + !new LoginCommand(config.Server.Query.Login, config.Server.Query.Password).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Switch to server with port 9987: " + !new UseCommand(config.Server.Port).Execute(QueryClient).IsErroneous);
 
-            Console.WriteLine("Register notify [Server]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Server).Execute(client).IsErroneous);
-            Console.WriteLine("Register notify [Channel]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Channel, 0).Execute(client).IsErroneous); // 0 = all channels
-            Console.WriteLine("Register notify [Channel-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextChannel, 1).Execute(client).IsErroneous);
-            Console.WriteLine("Register notify [Server-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextServer).Execute(client).IsErroneous);
-            Console.WriteLine("Register notify [Private-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextPrivate).Execute(client).IsErroneous);
-            Console.WriteLine("Register notify [TokenUsed]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TokenUsed).Execute(client).IsErroneous);
+            Console.WriteLine("Register notify [Server]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Server).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Register notify [Channel]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Channel, 0).Execute(QueryClient).IsErroneous); // 0 = all channels
+            Console.WriteLine("Register notify [Channel-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextChannel, 1).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Register notify [Server-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextServer).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Register notify [Private-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextPrivate).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Register notify [TokenUsed]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TokenUsed).Execute(QueryClient).IsErroneous);
 
             Console.WriteLine("Type a command or press [ENTER] to quit");
+            
 
-
-            ServerService server = new ServerService(client);
-            foreach (var extension in extensions)
-            {
-                extension.Configure(server);
-            }
-
-            server.UpdateServerData();
+            Interface.TS3Bot.GetLibrary<Server>().UpdateServerData();
 
             do
             {
@@ -137,17 +131,17 @@ namespace TS3Bot.Core
 
                 if (commandText.Length == 0)
                 {
-                    new LogoutCommand().Execute(client);
+                    new LogoutCommand().Execute(QueryClient);
                     break;
                 }
 
-                string response = client.Send(commandText);
+                string response = QueryClient.Send(commandText);
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("Response: ");
                 Console.ResetColor();
                 Console.WriteLine(response);
             }
-            while (client.Connected);
+            while (QueryClient.Connected);
 
             Console.WriteLine("Bye Bye!");
         }

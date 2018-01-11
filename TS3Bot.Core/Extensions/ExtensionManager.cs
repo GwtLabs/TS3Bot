@@ -16,6 +16,7 @@ namespace TS3Bot.Core.Extensions
         {
             // Initialize
             extensions = new List<Extension>();
+            libraries = new Dictionary<string, Library>();
         }
 
         /// <summary>
