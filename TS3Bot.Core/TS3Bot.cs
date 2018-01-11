@@ -10,40 +10,34 @@ using TS3QueryLib.Net.Core.Server.Entitities;
 using TS3QueryLib.Net.Core.Server.Notification;
 using ea = TS3QueryLib.Net.Core.Server.Notification.EventArgs;
 using TS3QueryLib.Net.Core.Server.Responses;
-
 using System.Configuration;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
-using TS3Bot.Core.Config;
+using TS3Bot.Core.Configuration;
 using TS3Bot.Core.Extensions;
 using TS3Bot.Core.Model;
 using TS3Bot.Core.Services;
 using TS3Bot.Core.Mappers;
+using TS3Bot.Core.Libraries;
 
 namespace TS3Bot.Core
 {
-    public sealed class TS3BotCore
+    public sealed class TS3Bot
     {
-        private static readonly TS3BotCore instance = new TS3BotCore();
+        private ExtensionManager extensionManager;
         private static List<Extension> extensions = new List<Extension>();
-        private readonly Ts3BotConfig config;
+        private Ts3BotConfig config;
         private IQueryClient client;
 
-
-        static TS3BotCore()
+        public TS3Bot()
         {
         }
 
-        public static TS3BotCore Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
-
-        private TS3BotCore()
+        /// <summary>
+        /// Initializes a new instance of the TS3Bot class
+        /// </summary>
+        public void Load()
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -59,7 +53,14 @@ namespace TS3Bot.Core
             //configuration.GetSection("PokeBot").Bind(moduleSettings);
 
             AutoMapperConfig.Initialize();
+
+
+            extensionManager = new ExtensionManager();
+
+            extensionManager.RegisterLibrary("Server", new Server());
         }
+
+        public T GetLibrary<T>(string name = null) where T : Library => extensionManager.GetLibrary(name ?? typeof(T).Name) as T;
 
         public void AddExtension(Extension ext)
         {

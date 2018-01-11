@@ -19,11 +19,9 @@ namespace TS3Bot.Daemon
     {
         static void Main(string[] args)
         {
-            var TS3bot = TS3BotCore.Instance;
-
-            TS3bot.AddExtension(new AutoPokeExtension());
-
-            TS3bot.Run();
+            Interface.Initialize();
+            Interface.TS3Bot.AddExtension(new AutoPokeExtension());
+            Interface.TS3Bot.Run();
         }
     }
 }

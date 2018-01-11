@@ -5,32 +5,22 @@ using TS3Bot.Core.Model;
 
 namespace TS3Bot.Core
 {
-    class Interface
+    public static class Interface
     {
-        private static readonly Interface instance = new Interface();
+        /// <summary>
+        /// Gets the main Oxide mod instance
+        /// </summary>
+        public static TS3Bot TS3Bot { get; private set; }
 
-        public static Server Server { get; private set; }
-        
-        static Interface()
+        /// <summary>
+        /// Initializes TS3Bot
+        /// </summary>
+        public static void Initialize()
         {
-        }
-
-        public static Interface Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
-
-        private Interface()
-        {
-
-        }
-
-        public void Initialize(Server server)
-        {
-            Server = server;
+            // Create if not already created
+            if (TS3Bot != null) return;
+            TS3Bot = new TS3Bot();
+            TS3Bot.Load();
         }
     }
 }

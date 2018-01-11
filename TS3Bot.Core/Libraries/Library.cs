@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TS3Bot.Core.Model
+namespace TS3Bot.Core.Libraries
 {
-    public class Server
+    public abstract class Library
     {
     }
 }
