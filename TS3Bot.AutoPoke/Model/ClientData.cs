@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TS3Bot.Ext.AutoPoke.Model
+﻿namespace TS3Bot.Ext.AutoPoke.Model
 {
     public class ClientData
     {

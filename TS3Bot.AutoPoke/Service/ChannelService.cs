@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Timers;
-using TS3Bot.Core.Model;
-using TS3Bot.Ext.AutoPoke.DTO;
 using TS3QueryLib.Net.Core.Server.Commands;
 using TS3QueryLib.Net.Core.Server.Entitities;
 using TS3QueryLib.Net.Core.Server.Notification.EventArgs;

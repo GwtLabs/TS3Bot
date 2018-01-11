@@ -5,7 +5,6 @@ using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
 using System;
 using System.Collections.Generic;
 using TS3Bot.Ext.AutoPoke.Model;
-using TS3QueryLib.Net.Core.Server.Entitities;
 using TS3Bot.Ext.AutoPoke.Mappers;
 using AutoMapper;
 
