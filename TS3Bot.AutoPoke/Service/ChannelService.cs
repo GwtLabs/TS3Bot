@@ -10,6 +10,7 @@ using TS3QueryLib.Net.Core.Common.CommandHandling;
 using TS3Bot.Core;
 using TS3Bot.Core.Libraries;
 using System.Linq;
+using TS3Bot.Core.Model;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
@@ -48,9 +49,9 @@ namespace TS3Bot.Ext.AutoPoke.Model
                     return;
                 }
 
-                ClientListEntry client = Server.GetClient(e.ClientId);
-
-                ch.Join(client);
+                Client client = Server.GetClient(e.ClientId);
+                if (client != null)
+                    ch.Join(client);
 
                 if (ch.NeedHelp)
                 {
