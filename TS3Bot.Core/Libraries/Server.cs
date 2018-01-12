@@ -15,7 +15,7 @@ namespace TS3Bot.Core.Libraries
     {
         private static Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
 
-        private static IDictionary<uint, bool> events;
+        private static IDictionary<uint, DateTime> events;
         private static Object eventLock = new Object();
         private static Object clientsLock = new Object();
         private static Object clientLock = new Object();
@@ -26,7 +26,7 @@ namespace TS3Bot.Core.Libraries
 
         public Server()
         {
-            events = new Dictionary<uint, bool>();
+            events = new Dictionary<uint, DateTime>();
             mapper = AutoMapperConfig.Initialize();
         }
 
@@ -134,14 +134,10 @@ namespace TS3Bot.Core.Libraries
         {
             lock (eventLock)
             {
-                if (events.ContainsKey(e.ClientId))
-                {
-                    events.Remove(e.ClientId);
+                if (DoubleEvent(e.ClientId))
                     return;
-                }
-                events.Add(e.ClientId, true);
 
-                if (clients.ContainsKey(e.ClientId))
+                if (!clients.ContainsKey(e.ClientId))
                 {
                     clients.Add(e.ClientId, mapper.Map<ClientJoinedEventArgs, Client>(e));
                 }
@@ -152,12 +148,8 @@ namespace TS3Bot.Core.Libraries
         {
             lock (eventLock)
             {
-                if (events.ContainsKey(e.ClientId))
-                {
-                    events.Remove(e.ClientId);
+                if (DoubleEvent(e.ClientId))
                     return;
-                }
-                events.Add(e.ClientId, true);
 
                 if (clients.ContainsKey(e.ClientId))
                 {
@@ -171,12 +163,8 @@ namespace TS3Bot.Core.Libraries
         {
             lock (eventLock)
             {
-                if (events.ContainsKey(clid))
-                {
-                    events.Remove(clid);
+                if (DoubleEvent(clid))
                     return;
-                }
-                events.Add(clid, true);
 
                 if (clients.ContainsKey(clid))
                 {
@@ -186,5 +174,21 @@ namespace TS3Bot.Core.Libraries
         }
 
         #endregion Methods
+
+        #region Helpers
+
+        private static bool DoubleEvent(uint id)
+        {
+            if (events.ContainsKey(id))
+            {
+                events.Remove(id);
+                return true;
+            }
+            // TODO: Dodać usuwanie starych eventów po dacie dodania co np kilka godzin? (oficjalnie events powinno się czyścić same zdublowanym eventem)
+            events.Add(id, DateTime.UtcNow);
+            return false;
+        }
+
+        #endregion Helpers
     }
 }
