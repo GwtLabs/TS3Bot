@@ -13,6 +13,8 @@ namespace TS3Bot.Core.Libraries
 {
     public class Server : Library
     {
+        #region Variables
+
         private static Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
 
         private static IDictionary<uint, DateTime> events;
@@ -24,11 +26,19 @@ namespace TS3Bot.Core.Libraries
 
         public IQueryClient client;
 
+        #endregion Variables
+
+        #region Initialization
+
         public Server()
         {
             events = new Dictionary<uint, DateTime>();
             mapper = AutoMapperConfig.Initialize();
         }
+
+        #endregion Initialization
+
+        #region Notifications
 
         public override void RegisterNotifications(NotificationHub notifications)
         {
@@ -41,50 +51,6 @@ namespace TS3Bot.Core.Libraries
             notifications.ClientLeft.ConnectionLost += ClientLeft_ConnectionLost;
             notifications.ClientLeft.Banned += ClientLeft_Banned;
         }
-
-        public void UpdateServerData()
-        {
-            UpdateClients();
-        }
-
-        private void UpdateClients()
-        {
-            lock (clientsLock)
-            {
-                var response = new ClientListCommand(includeUniqueId: true).Execute(Interface.TS3Bot.QueryClient);
-                if (response.IsErroneous)
-                {
-                    return;
-                }
-
-                foreach (var c in response.Values)
-                {
-                    UpdateClient(mapper.Map<ClientListEntry, Client>(c));
-                }
-            }
-        }
-
-        private void UpdateClient(Client client)
-        {
-            lock (clientLock)
-            {
-                if (clients.ContainsKey(client.ClientId))
-                {
-                    clients[client.ClientId] = client;
-                }
-                else
-                {
-                    clients.Add(client.ClientId, client);
-                }
-            }
-        }
-
-        public static Client GetClient(uint clid)
-        {
-            return clients.ContainsKey(clid) ? clients[clid] : null;
-        }
-
-        #region Notifications
 
         private static void ClientJoined_Triggered(object sender, ClientJoinedEventArgs e)
         {
@@ -128,7 +94,53 @@ namespace TS3Bot.Core.Libraries
 
         #endregion Notifications
 
+        #region API
+
+        public static Client GetClient(uint clid)
+        {
+            return clients.ContainsKey(clid) ? clients[clid] : null;
+        }
+
+        #endregion API
+
         #region Methods
+
+        public void UpdateServerData()
+        {
+            UpdateClients();
+        }
+
+        private void UpdateClients()
+        {
+            lock (clientsLock)
+            {
+                var response = new ClientListCommand(includeUniqueId: true).Execute(Interface.TS3Bot.QueryClient);
+                if (response.IsErroneous)
+                {
+                    return;
+                }
+
+                foreach (var c in response.Values)
+                {
+                    UpdateClient(mapper.Map<ClientListEntry, Client>(c));
+                }
+            }
+        }
+
+        private void UpdateClient(Client client)
+        {
+            lock (clientLock)
+            {
+                if (clients.ContainsKey(client.ClientId))
+                {
+                    clients[client.ClientId] = client;
+                }
+                else
+                {
+                    clients.Add(client.ClientId, client);
+                }
+            }
+        }
 
         private static void ClientJoined(ClientJoinedEventArgs e)
         {

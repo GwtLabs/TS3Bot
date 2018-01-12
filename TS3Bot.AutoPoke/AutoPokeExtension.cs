@@ -16,7 +16,7 @@ namespace TS3Bot.Ext.AutoPoke
 
         private static ConfigDTO config;
         private static IMapper mapper;
-        private static ChannelService channelService;
+        private static AutoPokeService channelService;
 
         private static IDictionary<uint, bool> events;
         private static Object eventLock = new Object();
@@ -29,7 +29,7 @@ namespace TS3Bot.Ext.AutoPoke
                 mapper = AutoMapperConfig.Initialize();
 
                 events = new Dictionary<uint, bool>();
-                channelService = new ChannelService();
+                channelService = new AutoPokeService();
 
                 foreach (var c in config.Channels)
                 {
