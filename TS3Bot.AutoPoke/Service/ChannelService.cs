@@ -16,15 +16,18 @@ namespace TS3Bot.Ext.AutoPoke.Model
 {
     class ChannelService
     {
+        #region Variables
         private Server Server = Interface.TS3Bot.GetLibrary<Server>();
         private IDictionary<uint, Timer> timers = new Dictionary<uint, Timer>();
         private IDictionary<uint, ChannelData> channels = new Dictionary<uint, ChannelData>();
         private IDictionary<uint, ClientData> clients = new Dictionary<uint, ClientData>();
+        #endregion Variables
 
         public ChannelService()
         {
         }
 
+        #region Methods
         public void AddChannel(ChannelData channel)
         {
             channels.Add(channel.Id, channel);
@@ -60,7 +63,9 @@ namespace TS3Bot.Ext.AutoPoke.Model
                 return;
             }
         }
+        #endregion Methods
 
+        #region Helpers
         private bool WasOnTackedChannel(uint clid)
         {
             return channels.Any(c => c.Value.Clients.Any(cl => cl.Id == clid));
@@ -71,7 +76,9 @@ namespace TS3Bot.Ext.AutoPoke.Model
             //channels.Rem
             //channels.Where(c => c.Value.)
         }
+        #endregion Helpers
 
+        #region Timers
         private void InitializeTimer(ChannelData channel)
         {
             if (!timers.ContainsKey(channel.Id))
@@ -100,5 +107,6 @@ namespace TS3Bot.Ext.AutoPoke.Model
                 Console.WriteLine($"{DateTime.Now}: {c.Id} - Wait a moment, someone will come to soon.");
             }
         }
+        #endregion Timers
     }
 }
