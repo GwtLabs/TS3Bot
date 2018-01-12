@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using TS3Bot.Core.Extensions;
 
 namespace TS3Bot.Ext.AutoPoke.DTO

@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TS3Bot.Core.Libraries;
 using TS3Bot.Core.Model;
-using TS3Bot.Core.Services;
 using TS3QueryLib.Net.Core.Server.Notification;
 
 namespace TS3Bot.Core.Extensions
@@ -16,14 +16,9 @@ namespace TS3Bot.Core.Extensions
 
         public abstract string Name { get; }
 
-        public static ServerService Server;
+        public static Server Server = Interface.TS3Bot.GetLibrary<Server>();
 
         private static IConfig config;
-
-        public void Configure(ServerService serverService)
-        {
-            Server = serverService;
-        }
 
         protected void SaveConfig()
         {

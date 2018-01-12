@@ -1,13 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using TS3QueryLib.Net.Core.Server.Entitities;
 
 namespace TS3Bot.Core.Model
 {
-    public class Client
+    public class Client : ClientListEntry
     {
-        public uint Id { get; set; }
-        public List<uint> ServerGroups { get; set; }
+        public bool NeedUpdate { get; private set; } = false;
+        public uint PreviousChannelId { get; set; }
 
+        public Client()
+        {
+
+        }
+
+        public void MovedToChannel(uint cid)
+        {
+            NeedUpdate = true;
+            PreviousChannelId = ChannelId;
+            ChannelId = cid;
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using TS3QueryLib.Net.Core;
@@ -10,40 +9,28 @@ using TS3QueryLib.Net.Core.Server.Entitities;
 using TS3QueryLib.Net.Core.Server.Notification;
 using ea = TS3QueryLib.Net.Core.Server.Notification.EventArgs;
 using TS3QueryLib.Net.Core.Server.Responses;
-
-using System.Configuration;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
-using TS3Bot.Core.Config;
+using TS3Bot.Core.Configuration;
 using TS3Bot.Core.Extensions;
-using TS3Bot.Core.Model;
-using TS3Bot.Core.Services;
-using TS3Bot.Core.Mappers;
+using TS3Bot.Core.Libraries;
 
 namespace TS3Bot.Core
 {
-    public sealed class TS3BotCore
+    public sealed class TS3Bot
     {
-        private static readonly TS3BotCore instance = new TS3BotCore();
-        private static List<Extension> extensions = new List<Extension>();
-        private readonly Ts3BotConfig config;
-        private IQueryClient client;
+        private ExtensionManager extensionManager;
+        private Ts3BotConfig config;
 
+        public IQueryClient QueryClient;
 
-        static TS3BotCore()
+        public TS3Bot()
         {
         }
 
-        public static TS3BotCore Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
-
-        private TS3BotCore()
+        /// <summary>
+        /// Initializes a new instance of the TS3Bot class
+        /// </summary>
+        public void Load()
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -58,12 +45,17 @@ namespace TS3Bot.Core
             //var moduleSettings = new PokeBot();
             //configuration.GetSection("PokeBot").Bind(moduleSettings);
 
-            AutoMapperConfig.Initialize();
+
+            extensionManager = new ExtensionManager();
+
+            extensionManager.RegisterLibrary("Server", new Server());
         }
+
+        public T GetLibrary<T>(string name = null) where T : Library => extensionManager.GetLibrary(name ?? typeof(T).Name) as T;
 
         public void AddExtension(Extension ext)
         {
-            extensions.Add(ext);
+            extensionManager.AddExtension(ext);
         }
 
         public void Run()
@@ -91,40 +83,30 @@ namespace TS3Bot.Core
             notifications.ServerEdited.Triggered += ServerEdited_Triggered;
             notifications.UnknownNotificationReceived.Triggered += UnknownNotificationReceived_Triggered;
 
-
-            foreach (var extension in extensions)
-            {
-                extension.RegisterNotifications(notifications);
-            }
+            extensionManager.RegisterNotifications(notifications);
 
 
             // The client is configured to send a heartbeat every 30 seconds, the default is not to send a keep alive
-            client = new QueryClient(notificationHub: notifications, keepAliveInterval: TimeSpan.FromSeconds(30), host: config.Server.Host, port: config.Server.Query.Port);
-            client.BanDetected += Client_BanDetected;
-            client.ConnectionClosed += Client_ConnectionClosed;
-            Connect(client);
+            QueryClient = new QueryClient(notificationHub: notifications, keepAliveInterval: TimeSpan.FromSeconds(30), host: config.Server.Host, port: config.Server.Query.Port);
+            QueryClient.BanDetected += Client_BanDetected;
+            QueryClient.ConnectionClosed += Client_ConnectionClosed;
+            Connect(QueryClient);
 
             // username and password are random and only valid on my dev box. So dont bother
-            Console.WriteLine("Admin login:" + !new LoginCommand(config.Server.Query.Login, config.Server.Query.Password).Execute(client).IsErroneous);
-            Console.WriteLine("Switch to server with port 9987: " + !new UseCommand(config.Server.Port).Execute(client).IsErroneous);
+            Console.WriteLine("Admin login:" + !new LoginCommand(config.Server.Query.Login, config.Server.Query.Password).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Switch to server with port 9987: " + !new UseCommand(config.Server.Port).Execute(QueryClient).IsErroneous);
 
-            Console.WriteLine("Register notify [Server]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Server).Execute(client).IsErroneous);
-            Console.WriteLine("Register notify [Channel]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Channel, 0).Execute(client).IsErroneous); // 0 = all channels
-            Console.WriteLine("Register notify [Channel-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextChannel, 1).Execute(client).IsErroneous);
-            Console.WriteLine("Register notify [Server-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextServer).Execute(client).IsErroneous);
-            Console.WriteLine("Register notify [Private-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextPrivate).Execute(client).IsErroneous);
-            Console.WriteLine("Register notify [TokenUsed]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TokenUsed).Execute(client).IsErroneous);
+            Console.WriteLine("Register notify [Server]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Server).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Register notify [Channel]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Channel, 0).Execute(QueryClient).IsErroneous); // 0 = all channels
+            Console.WriteLine("Register notify [Channel-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextChannel, 1).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Register notify [Server-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextServer).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Register notify [Private-Text]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TextPrivate).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Register notify [TokenUsed]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.TokenUsed).Execute(QueryClient).IsErroneous);
 
             Console.WriteLine("Type a command or press [ENTER] to quit");
 
 
-            ServerService server = new ServerService(client);
-            foreach (var extension in extensions)
-            {
-                extension.Configure(server);
-            }
-
-            server.UpdateServerData();
+            Interface.TS3Bot.GetLibrary<Server>().UpdateServerData();
 
             do
             {
@@ -136,17 +118,17 @@ namespace TS3Bot.Core
 
                 if (commandText.Length == 0)
                 {
-                    new LogoutCommand().Execute(client);
+                    new LogoutCommand().Execute(QueryClient);
                     break;
                 }
 
-                string response = client.Send(commandText);
+                string response = QueryClient.Send(commandText);
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("Response: ");
                 Console.ResetColor();
                 Console.WriteLine(response);
             }
-            while (client.Connected);
+            while (QueryClient.Connected);
 
             Console.WriteLine("Bye Bye!");
         }

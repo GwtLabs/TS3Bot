@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TS3Bot.Ext.AutoPoke.DTO
+﻿namespace TS3Bot.Ext.AutoPoke.DTO
 {
     public class GroupDTO
     {
