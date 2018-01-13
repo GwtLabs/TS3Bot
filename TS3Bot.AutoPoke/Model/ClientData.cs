@@ -8,7 +8,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
         public Client Object { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime UpdatedAt { get; private set; }
-        public DateTime LastNotifAt { get; set; }
+        public DateTime LastNotifAt { get; private set; }
         //private Client _client;
         //public Client Client
         //{
@@ -27,6 +27,11 @@ namespace TS3Bot.Ext.AutoPoke.Model
         {
             Object = client;
             CreatedAt = DateTime.UtcNow;
+        }
+
+        public void LastNotifNow()
+        {
+            LastNotifAt = DateTime.UtcNow;
         }
     }
 }

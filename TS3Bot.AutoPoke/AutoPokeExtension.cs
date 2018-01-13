@@ -29,7 +29,7 @@ namespace TS3Bot.Ext.AutoPoke
                 mapper = AutoMapperConfig.Initialize();
 
                 events = new Dictionary<uint, bool>();
-                channelService = new AutoPokeService();
+                channelService = new AutoPokeService(this);
 
                 foreach (var c in config.Channels)
                 {
@@ -62,43 +62,19 @@ namespace TS3Bot.Ext.AutoPoke
             // English
             lang.RegisterMessages(new Dictionary<string, string>
             {
-                ["Added"] = "Player '{name}' has been added to ignored list",
-                ["AlreadyExists"] = "Player '{name}' is already on the ignored list",
-                ["Cleaned"] = "List has been cleared",
-                ["IncorectValue"] = "Invalid value",
-                ["List"] = "Ignored list:",
-                ["ListIsEmpty"] = "The ignored list is empty",
-                ["MultiplePlayersFound"] = "Multiple matching players found: {players}",
-                ["NotAddYourself"] = "You can not add yourself",
-                ["PlayerNotFound"] = "Could not find player with name '{search}'",
-                ["Syntax"] = "Proper {cmd} command usage:",
-                ["SyntaxList"] = "Ignored list: {cmd}",
-                ["SyntaxAdd"] = "Add to list: {cmd}",
-                ["SyntaxRemove"] = "Remove from the list: {cmd}",
-                ["SyntaxRemoveId"] = "Remove the id from the list: {cmd}",
-                ["SyntaxClear"] = "Clearing the list: {cmd}",
-                ["Removed"] = "Removed player '{name}' from ignored list",
+                ["UserNotification"] = "[b][color=green]Dear {ClientName}[/color]. [color=red]Wait a moment, someone will come to soon.[/color][/b]",
+                ["UserStaffBusyNotification"] = "[b]Wszyscy admini wydają się być aktualnie czymś zajęci i nie mogą w tej chwili pomóc. Możesz poczekąć (zapewne dłużej niż zwykle), albo spróbować ponownie trochę później.[/b]",
+                ["UserNoStaffOnlineNotification"] = "[b]Przepraszamy, ale w tej chwili nie ma ani jednego admina online. Spróbuj ponownie później.[/b]",
+                ["StaffNotification"] = "[u]#{Time}[/u] [b]{ClientName}[/b] czeka na [b]{ChannelName}[/b]",
             }, this);
 
             // Polish
             lang.RegisterMessages(new Dictionary<string, string>
             {
-                ["Added"] = "Gracz '{name}' został dodany do listy ignorowanych",
-                ["AlreadyExists"] = "Gracz '{name}' jest już na liście ignorowanych",
-                ["Cleaned"] = "Lista została wyczyszczona",
-                ["IncorectValue"] = "Nieprawidłowa wartość",
-                ["List"] = "Lista ignorowanych:",
-                ["ListIsEmpty"] = "Lista ignorowanych jest pusta",
-                ["MultiplePlayersFound"] = "Znaleziono kilku pasujących graczy: {players}",
-                ["NotAddYourself"] = "Nie możesz dodać siebie samego",
-                ["PlayerNotFound"] = "Nie znaleziono gracza '{search}'",
-                ["Syntax"] = "Prawidłowe używanie komedny {cmd}:",
-                ["SyntaxList"] = "Lista ignorowanych: {cmd}",
-                ["SyntaxAdd"] = "Dodanie do listy: {cmd}",
-                ["SyntaxRemove"] = "Usunięcie z listy: {cmd}",
-                ["SyntaxRemoveId"] = "Usunięcie po id z listy: {cmd}",
-                ["SyntaxClear"] = "Wyczyszczenie listy: {cmd}",
-                ["Removed"] = "Usunięto z listy ignorowanych gracza '{name}'",
+                ["UserNotification"] = "[b][color=green]Drogi {ClientName}[/color]. [color=red]Administracja została powiadomiona o Twoim pobycie na tym kanale. Za chwilę ktoś Ci pomoże.[/color][/b]",
+                ["UserStaffBusyNotification"] = "[b]Wszyscy admini wydają się być aktualnie czymś zajęci i nie mogą w tej chwili pomóc. Możesz poczekąć (zapewne dłużej niż zwykle), albo spróbować ponownie trochę później.[/b]",
+                ["UserNoStaffOnlineNotification"] = "[b]Przepraszamy, ale w tej chwili nie ma ani jednego admina online. Spróbuj ponownie później.[/b]",
+                ["StaffNotification"] = "[u]#{Time}[/u] [b]{ClientName}[/b] czeka na [b]{ChannelName}[/b]",
             }, this, "pl");
         }
 

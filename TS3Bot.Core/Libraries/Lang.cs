@@ -9,6 +9,14 @@ namespace TS3Bot.Core.Libraries
         private const string defaultLang = "en";
         Dictionary<string, Dictionary<string, string>> _translations = new Dictionary<string, Dictionary<string, string>>();
 
+        #region Initialization
+
+        public Lang()
+        {
+        }
+
+        #endregion Initialization
+
         #region Notifications
 
         public override void RegisterNotifications(NotificationHub notifications)
@@ -23,11 +31,11 @@ namespace TS3Bot.Core.Libraries
             _translations.TryAdd(langFile, translations);
         }
 
-        public string GetMessage(string key, Extension plugin, uint clid = 0)
+        public string GetMessage(string key, Extension ext, uint clid = 0)
         {
-            if (string.IsNullOrEmpty(key) || plugin == null) return key;
+            if (string.IsNullOrEmpty(key) || ext == null) return key;
 
-            return GetMessageKey(key, plugin, GetLanguage(clid));
+            return GetMessageKey(key, ext, GetLanguage(clid));
         }
 
         private string GetMessageKey(string key, Extension ext, string lang = defaultLang)

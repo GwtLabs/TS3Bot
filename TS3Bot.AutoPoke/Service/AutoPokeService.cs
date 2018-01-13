@@ -19,6 +19,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
     {
         #region Variables
 
+        private AutoPokeExtension extension;
         private Server Server = Interface.TS3Bot.GetLibrary<Server>();
         private Lang lang = Interface.TS3Bot.GetLibrary<Lang>();
         private IDictionary<uint, Timer> timers = new Dictionary<uint, Timer>();
@@ -28,11 +29,17 @@ namespace TS3Bot.Ext.AutoPoke.Model
         private Object TimersLock = new Object();
 
         private int maxLengthNickname = 20;
+        private int delayStart = 5;
+        private int staffNotifCooldown = 5;
+        private int userNotifCooldown = 10;
+        private int notifLvlToBusyStaff = 2;
+        private int maxWaitingTimeWhenStaffIsOnline = 20;
 
         #endregion Variables
 
-        public AutoPokeService()
+        public AutoPokeService(AutoPokeExtension e)
         {
+            extension = e;
         }
 
         #region Methods
@@ -116,12 +123,13 @@ namespace TS3Bot.Ext.AutoPoke.Model
         {
             lock (TimersLock)
             {
-                foreach (var c in channels)
+                foreach (var c in channels.Values)
                 {
-                    if (!c.Value.NeedHelp && timers.ContainsKey(c.Value.Id))
+                    if (!c.NeedHelp && timers.ContainsKey(c.Id))
                     {
-                        timers[c.Value.Id].Stop();
-                        timers.Remove(c.Value.Id);
+                        timers[c.Id].Stop();
+                        timers.Remove(c.Id);
+                        Console.WriteLine($"usunięto {c.Id}");
                     }
                 }
             }
@@ -149,34 +157,52 @@ namespace TS3Bot.Ext.AutoPoke.Model
             clientName = clientName.Substring(0, Math.Min(maxLengthNickname, clientName.Length));
             Channel channel = Server.GetChannel(ch.Id);
 
-            string clientMsg;
+            string clientMsgKey;
             if (chStaffOnline.Count > 0)
             {
-                // Notifications for staff
-                foreach (var s in chStaffOnline)
+                if (ch.NeedHelpAt < DateTime.UtcNow.AddSeconds(-delayStart))
                 {
-                    var cd = GetClientData(s.ClientId);
-                    Console.WriteLine($"Staff check: {s.Nickname}");
-                    if (cd.LastNotifAt < DateTime.UtcNow.AddSeconds(-5))
+                    // Notifications for staff
+                    foreach (var s in chStaffOnline)
                     {
-                        new ClientPokeCommand(s.ClientId, $"[b]{clientName}[/b] czeka na [b]{channel.Name}[/b]").Execute(Interface.TS3Bot.QueryClient);
-                        cd.LastNotifAt = DateTime.UtcNow;
+                        var cd = GetClientData(s.ClientId);
+                        if (cd.LastNotifAt < DateTime.UtcNow.AddSeconds(-staffNotifCooldown))
+                        {
+                            Console.WriteLine($"{DateTime.UtcNow}: [StaffMsg] {ch.Id} {cd.Object.ClientId} {cd.CreatedAt}");
+                            if (ch.WasStaff)
+                                return;
+                            new ClientPokeCommand(s.ClientId, lang.GetMessage("StaffNotification", extension, s.ClientId)
+                                .Replace("{ClientName}", clientName).Replace("{ChannelName}", channel.Name).Replace("{Time}", ch.Time()))
+                                .Execute(Interface.TS3Bot.QueryClient);
+                            cd.LastNotifNow();
+                        }
                     }
+                    //ch.NextLevel();
                 }
-                clientMsg
+                clientMsgKey = "UserNotification";
             }
             else
             {
-                clientMsg = "Aktualnie nie ma online nikogo z obsługi kanału";
+                clientMsgKey = "UserNoStaffOnlineNotification";
             }
 
 
             // Notifications for clients
-            foreach (var c in ch.Clients)
+            foreach (var cd in ch.Clients)
             {
-                // "Wait a moment, someone will come to soon."
-                Console.WriteLine($"{DateTime.Now}: {c.Object.ClientId} {c.CreatedAt} - Wait a moment, someone will come to soon.");
-                c.LastNotifAt = DateTime.UtcNow;
+                if (cd.LastNotifAt < DateTime.UtcNow.AddSeconds(-userNotifCooldown))
+                {
+                    if (cd.LastNotifAt < DateTime.UtcNow.AddSeconds(-maxWaitingTimeWhenStaffIsOnline))
+                    {
+                        clientMsgKey = "UserStaffBusyNotification";
+                    }
+                    Console.WriteLine($"{DateTime.UtcNow}: [ClientMsg] {ch.Id} {cd.Object.ClientId} {cd.CreatedAt} {clientMsgKey}");
+                    if (ch.WasStaff)
+                        return;
+                    new SendTextMessageCommand(MessageTarget.Client, cd.Object.ClientId, lang.GetMessage(clientMsgKey, extension, cd.Object.ClientId)
+                        .Replace("{ClientName}", cd.Object.Nickname)).Execute(Interface.TS3Bot.QueryClient);
+                    cd.LastNotifNow();
+                }
             }
         }
 

@@ -10,7 +10,8 @@ namespace TS3Bot.Ext.AutoPoke.Model
     {
         private Object StatusLock = new Object();
         public uint Id { get; }
-        public uint NotificationLevel { get; private set; }
+        public DateTime CreatedAt { get; private set; }
+        //public uint NotificationLevel { get; private set; }
         public bool NeedHelp { get; private set; } = false;
         public DateTime NeedHelpAt { get; private set; } = DateTime.MinValue;
         public bool WasStaff { get; private set; } = false;
@@ -24,13 +25,13 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
         public bool IsEmpty()
         {
-            return Clients.Any();
+            return !Clients.Any();
         }
 
-        public void NextLevel()
-        {
-            NotificationLevel++;
-        }
+        //public void NextLevel()
+        //{
+        //    NotificationLevel++;
+        //}
 
         public List<uint> GetGroupList()
         {
@@ -42,6 +43,18 @@ namespace TS3Bot.Ext.AutoPoke.Model
             NeedHelpAt = DateTime.MinValue;
             NeedHelp = false;
             WasStaff = false;
+        }
+
+        public string Time()
+        {
+            if (NeedHelpAt == DateTime.MinValue)
+            {
+                return null;
+            }
+            TimeSpan span = (DateTime.UtcNow - NeedHelpAt);
+            string time = String.Format("{0}:{1}", (int)span.TotalMinutes, span.Seconds.ToString().PadLeft(2, '0'));
+
+            return time;
         }
 
         public void Join(ClientData cd)
@@ -64,6 +77,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
                     if (!NeedHelp)
                     {
                         NeedHelp = true;
+                        NeedHelpAt = DateTime.UtcNow;
                     }
                 }
             }

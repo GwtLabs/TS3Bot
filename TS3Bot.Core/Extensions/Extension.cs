@@ -24,6 +24,16 @@ namespace TS3Bot.Core.Extensions
 
         private static IConfig config;
 
+        protected ExtensionManager Manager;
+
+        public virtual void HandleAddedToManager(ExtensionManager manager)
+        {
+            Manager = manager;
+            //if (HasConfig) LoadConfig();
+            //if (HasMessages) LoadDefaultMessages();
+            LoadDefaultMessages();
+        }
+
         protected void SaveConfig()
         {
             ExtConfig.Write(Name, config);

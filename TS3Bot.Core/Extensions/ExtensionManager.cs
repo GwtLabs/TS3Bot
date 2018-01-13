@@ -9,7 +9,7 @@ namespace TS3Bot.Core.Extensions
     public sealed class ExtensionManager
     {
         // All registered extensions
-        private IList<Extension> extensions;
+        public IList<Extension> extensions { get; private set; }
 
         // All registered libraries
         private IDictionary<string, Library> libraries;

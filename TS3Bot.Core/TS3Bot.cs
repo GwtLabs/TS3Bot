@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using TS3Bot.Core.Configuration;
 using TS3Bot.Core.Extensions;
 using TS3Bot.Core.Libraries;
+using System.Collections.Generic;
 
 namespace TS3Bot.Core
 {
@@ -48,6 +49,7 @@ namespace TS3Bot.Core
 
             extensionManager = new ExtensionManager();
 
+            extensionManager.RegisterLibrary("Lang", new Lang());
             extensionManager.RegisterLibrary("Server", new Server());
         }
 
@@ -56,6 +58,12 @@ namespace TS3Bot.Core
         public void AddExtension(Extension ext)
         {
             extensionManager.AddExtension(ext);
+            ext.HandleAddedToManager(extensionManager);
+        }
+
+        public IList<Extension> Extensions()
+        {
+            return extensionManager.extensions;
         }
 
         public void Run()
