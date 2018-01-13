@@ -13,6 +13,7 @@ namespace TS3Bot.Core.Mappers
             => new MapperConfiguration(cfg =>
             {
                 //cfg.CreateMap<EntityListCommandResponse<ClientListEntry>, Dictionary<uint, Client>>();
+                cfg.CreateMap<ChannelListEntry, Channel>();
                 cfg.CreateMap<ClientListEntry, Client>();
                 cfg.CreateMap<ClientJoinedEventArgs, Client>();
             })

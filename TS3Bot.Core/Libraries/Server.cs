@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TS3Bot.Core.Mappers;
 using TS3Bot.Core.Model;
 using TS3QueryLib.Net.Core;
@@ -15,12 +16,15 @@ namespace TS3Bot.Core.Libraries
     {
         #region Variables
 
+        private static Dictionary<uint, Channel> channels = new Dictionary<uint, Channel>();
         private static Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
 
         private static IDictionary<uint, DateTime> events;
         private static Object eventLock = new Object();
+        private static Object channelsLock = new Object();
         private static Object clientsLock = new Object();
-        private static Object clientLock = new Object();
+        private static Dictionary<uint, Object> channelLock = new Dictionary<uint, Object>();
+        private static Dictionary<uint, Object> clientLock = new Dictionary<uint, Object>();
 
         private static IMapper mapper;
 
@@ -101,13 +105,46 @@ namespace TS3Bot.Core.Libraries
             return clients.ContainsKey(clid) ? clients[clid] : null;
         }
 
+        public static List<Client> GetClientsWithGroup(uint gid)
+        {
+            return clients.Where(c => c.Value.ServerGroups.Contains(gid)).Select(c => c.Value).ToList();
+        }
+
+        public static List<Client> GetClientsWithGroups(List<uint> gids)
+        {
+            return clients.Values.Where(c => c.ServerGroups.Any(g => gids.Contains(g))).ToList();
+        }
+
+        public static Channel GetChannel(uint cid)
+        {
+            return channels.ContainsKey(cid) ? channels[cid] : null;
+        }
+
         #endregion API
 
         #region Methods
 
         public void UpdateServerData()
         {
+            UpdateChannels();
             UpdateClients();
+        }
+
+        private void UpdateChannels()
+        {
+            lock (channelsLock)
+            {
+                var response = new ChannelListCommand(includeAll: false, includeTopics: true).Execute(Interface.TS3Bot.QueryClient);
+                if (response.IsErroneous)
+                {
+                    return;
+                }
+
+                foreach (var c in response.Values)
+                {
+                    UpdateChannel(mapper.Map<ChannelListEntry, Channel>(c));
+                }
+            }
         }
 
         private void UpdateClients()
@@ -127,9 +164,24 @@ namespace TS3Bot.Core.Libraries
             }
         }
 
+        private void UpdateChannel(Channel channel)
+        {
+            lock (ChannelLock(channel.ChannelId))
+            {
+                if (channels.ContainsKey(channel.ChannelId))
+                {
+                    channels[channel.ChannelId] = channel;
+                }
+                else
+                {
+                    channels.Add(channel.ChannelId, channel);
+                }
+            }
+        }
+
         private void UpdateClient(Client client)
         {
-            lock (clientLock)
+            lock (ClientLock(client.ClientId))
             {
                 if (clients.ContainsKey(client.ClientId))
                 {
@@ -144,25 +196,29 @@ namespace TS3Bot.Core.Libraries
 
         private static void ClientJoined(ClientJoinedEventArgs e)
         {
-            lock (eventLock)
-            {
-                if (DoubleEvent(e.ClientId))
-                    return;
+            if (DoubleEvent(e.ClientId))
+                return;
 
+            lock (ClientLock(e.ClientId))
+            {
                 if (!clients.ContainsKey(e.ClientId))
                 {
                     clients.Add(e.ClientId, mapper.Map<ClientJoinedEventArgs, Client>(e));
+                }
+                else
+                {
+                    clients[e.ClientId] = mapper.Map<ClientJoinedEventArgs, Client>(e);
                 }
             }
         }
 
         private static void ClientMoved(object sender, ClientMovedEventArgs e)
         {
-            lock (eventLock)
-            {
-                if (DoubleEvent(e.ClientId))
-                    return;
+            if (DoubleEvent(e.ClientId))
+                return;
 
+            lock (ClientLock(e.ClientId))
+            {
                 if (clients.ContainsKey(e.ClientId))
                 {
                     // TODO: pobrać więcej danych, albo oznaczyć, że wymaga aktualizacji grup kanałowych itp..
@@ -173,11 +229,11 @@ namespace TS3Bot.Core.Libraries
 
         private static void ClientLeft(uint clid)
         {
-            lock (eventLock)
-            {
-                if (DoubleEvent(clid))
-                    return;
+            if (DoubleEvent(clid))
+                return;
 
+            lock (ClientLock(clid))
+            {
                 if (clients.ContainsKey(clid))
                 {
                     clients.Remove(clid);
@@ -191,14 +247,37 @@ namespace TS3Bot.Core.Libraries
 
         private static bool DoubleEvent(uint id)
         {
-            if (events.ContainsKey(id))
+            lock (eventLock)
             {
-                events.Remove(id);
-                return true;
+                if (events.ContainsKey(id))
+                {
+                    events.Remove(id);
+
+                    return true;
+                }
+                // TODO: Dodać usuwanie starych eventów po dacie dodania co np kilka godzin? (oficjalnie events powinno się czyścić same zdublowanym eventem)
+                events.Add(id, DateTime.UtcNow);
+
+                return false;
             }
-            // TODO: Dodać usuwanie starych eventów po dacie dodania co np kilka godzin? (oficjalnie events powinno się czyścić same zdublowanym eventem)
-            events.Add(id, DateTime.UtcNow);
-            return false;
+        }
+
+        private static Object ChannelLock(uint id)
+        {
+            if (channelLock.ContainsKey(id))
+            {
+                channelLock.Add(id, new Object());
+            }
+            return channelLock[id];
+        }
+
+        private static Object ClientLock(uint id)
+        {
+            if (clientLock.ContainsKey(id))
+            {
+                clientLock.Add(id, new Object());
+            }
+            return clientLock[id];
         }
 
         #endregion Helpers

@@ -10,6 +10,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
     {
         private Object StatusLock = new Object();
         public uint Id { get; }
+        public uint NotificationLevel { get; private set; }
         public bool NeedHelp { get; private set; } = false;
         public DateTime NeedHelpAt { get; private set; } = DateTime.MinValue;
         public bool WasStaff { get; private set; } = false;
@@ -24,6 +25,16 @@ namespace TS3Bot.Ext.AutoPoke.Model
         public bool IsEmpty()
         {
             return Clients.Any();
+        }
+
+        public void NextLevel()
+        {
+            NotificationLevel++;
+        }
+
+        public List<uint> GetGroupList()
+        {
+            return StaffGroups.Select(g => g.Id).ToList();
         }
 
         private void SetDefaultStatus()

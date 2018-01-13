@@ -140,6 +140,19 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
         private void ChannelTick(ChannelData ch)
         {
+            List<Client> chStaffOnline = Server.GetClientsWithGroups(ch.GetGroupList());
+            string clientName = string.Join(", ", ch.Clients.Select(c => c.Object.Nickname));
+            Channel channelName = Server.GetChannel(ch.Id);
+            // Notifications for staff
+            foreach (var s in chStaffOnline)
+            {
+                var cd = GetClientData(s.ClientId);
+                if (cd.LastNotifAt < DateTime.UtcNow.AddSeconds(-5))
+                {
+                    new ClientPokeCommand(s.ClientId, $"{clientName} czeka na {channelName}");
+                    cd.LastNotifAt = DateTime.UtcNow;
+                }
+            }
             foreach (var c in ch.Clients)
             {
                 // "Wait a moment, someone will come to soon."
