@@ -18,6 +18,10 @@ namespace TS3Bot.Core.Extensions
 
         public static Server Server = Interface.TS3Bot.GetLibrary<Server>();
 
+        public static Lang lang = Interface.TS3Bot.GetLibrary<Lang>();
+
+        protected virtual void LoadDefaultMessages() { }
+
         private static IConfig config;
 
         protected void SaveConfig()

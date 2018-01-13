@@ -105,6 +105,11 @@ namespace TS3Bot.Core.Libraries
             return clients.ContainsKey(clid) ? clients[clid] : null;
         }
 
+        public static Dictionary<uint, Client> GetClients()
+        {
+            return clients;
+        }
+
         public static List<Client> GetClientsWithGroup(uint gid)
         {
             return clients.Where(c => c.Value.ServerGroups.Contains(gid)).Select(c => c.Value).ToList();
@@ -112,8 +117,14 @@ namespace TS3Bot.Core.Libraries
 
         public static List<Client> GetClientsWithGroups(List<uint> gids)
         {
-            return clients.Values.Where(c => c.ServerGroups.Any(g => gids.Contains(g))).ToList();
+            //return clients.Where(c => GinG(c.Value.ServerGroups, gids)).Select(c => c.Value).ToList();
+            return clients.Where(c => c.Value.ServerGroups.Intersect(gids).Any()).Select(c => c.Value).ToList();
         }
+
+        //private static bool GinG(IList<uint> list1, IList<uint> list2)
+        //{
+        //    return list1.Intersect(list2).Any();
+        //}
 
         public static Channel GetChannel(uint cid)
         {
@@ -151,7 +162,7 @@ namespace TS3Bot.Core.Libraries
         {
             lock (clientsLock)
             {
-                var response = new ClientListCommand(includeUniqueId: true).Execute(Interface.TS3Bot.QueryClient);
+                var response = new ClientListCommand(includeUniqueId: true, includeGroupInfo: true, includeCountry: true).Execute(Interface.TS3Bot.QueryClient);
                 if (response.IsErroneous)
                 {
                     return;
@@ -264,7 +275,7 @@ namespace TS3Bot.Core.Libraries
 
         private static Object ChannelLock(uint id)
         {
-            if (channelLock.ContainsKey(id))
+            if (!channelLock.ContainsKey(id))
             {
                 channelLock.Add(id, new Object());
             }
@@ -273,7 +284,7 @@ namespace TS3Bot.Core.Libraries
 
         private static Object ClientLock(uint id)
         {
-            if (clientLock.ContainsKey(id))
+            if (!clientLock.ContainsKey(id))
             {
                 clientLock.Add(id, new Object());
             }
