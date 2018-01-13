@@ -21,8 +21,25 @@ namespace TS3Bot.Ext.AutoPoke.Model
             Id = id;
         }
 
+        public bool IsEmpty()
+        {
+            return Clients.Any();
+        }
+
+        private void SetDefaultStatus()
+        {
+            NeedHelp = false;
+            WasStaff = false;
+        }
+
         public void Join(Client client)
         {
+            // client.ClientType:   0 - normal, 1 - query
+            if (client.ClientType != 0)
+            {
+                return;
+            }
+
             ClientData cld = new ClientData() { Client = client };
             lock (StatusLock)
             {
@@ -44,16 +61,14 @@ namespace TS3Bot.Ext.AutoPoke.Model
             Clients.Add(cld);
         }
 
-        public void Left(Client client)
+        public void Left(uint clid)
         {
-            ClientData clientData = Clients.Where(c => c.Id == client.ClientId).First();
-            Clients.Remove(clientData);
+            Clients.RemoveAll(c => c.Id == clid);
             lock (StatusLock)
             {
-                if (!Clients.Any())
+                if (IsEmpty())
                 {
-                    NeedHelp = false;
-                    WasStaff = false;
+                    SetDefaultStatus();
                 }
             }
         }

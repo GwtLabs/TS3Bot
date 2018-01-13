@@ -21,7 +21,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
         private Server Server = Interface.TS3Bot.GetLibrary<Server>();
         private IDictionary<uint, Timer> timers = new Dictionary<uint, Timer>();
         private IDictionary<uint, ChannelData> channels = new Dictionary<uint, ChannelData>();
-        private IDictionary<uint, ClientData> clients = new Dictionary<uint, ClientData>();
+        //private IDictionary<uint, ClientData> clients = new Dictionary<uint, ClientData>();
 
         #endregion Variables
 
@@ -41,7 +41,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
             // czy klient był na obserwowanym kanale
             if (WasOnTackedChannel(e.ClientId))
             {
-                //LeftTrackedChannel(e.ClientId);
+                LeftTrackedChannel(e.ClientId);
             }
 
             if (channels.ContainsKey(e.TargetChannelId))
@@ -57,7 +57,9 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
                 Client client = Server.GetClient(e.ClientId);
                 if (client != null)
+                {
                     ch.Join(client);
+                }
 
                 if (ch.NeedHelp)
                 {
@@ -76,22 +78,34 @@ namespace TS3Bot.Ext.AutoPoke.Model
             return channels.Any(c => c.Value.Clients.Any(cl => cl.Id == clid));
         }
 
-        private void LeftTrackedChannel()
+        private void LeftTrackedChannel(uint clid)
         {
-            //channels.Rem
-            //channels.Where(c => c.Value.)
+            channels.ForEach(c => c.Value.Left(clid));
+            UpdateTimers();
         }
 
         #endregion Helpers
 
         #region Timers
 
+        private void UpdateTimers()
+        {
+            foreach (var c in channels)
+            {
+                if (!c.Value.NeedHelp && timers.ContainsKey(c.Value.Id))
+                {
+                    timers[c.Value.Id].Stop();
+                    timers.Remove(c.Value.Id);
+                }
+            }
+        }
+
         private void InitializeTimer(ChannelData channel)
         {
             if (!timers.ContainsKey(channel.Id))
             {
                 Timer t = new Timer();
-                t.Interval = 10000;
+                t.Interval = 1000;
                 t.Enabled = true;
                 t.Elapsed += delegate { ChannelTick(channel); };
                 //try
