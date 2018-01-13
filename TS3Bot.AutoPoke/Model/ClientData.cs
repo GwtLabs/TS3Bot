@@ -1,30 +1,32 @@
-﻿using TS3Bot.Core.Model;
+﻿using System;
+using TS3Bot.Core.Model;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
     public class ClientData
     {
-        public bool IsStaff { get; set; } = false;
-        public uint Id { get; private set; }
-        public ChannelData Channel { get; set; }
-        private Client _client;
-        public Client Client
-        {
-            get
-            {
-                return _client;
-            }
-            set
-            {
-                Id = value.ClientId;
-                _client = value;
-            }
-        }
-
-        //public ClientData(uint id, bool isStaff = false)
+        public Client Object { get; private set; }
+        public DateTime CreatedAt { get; private set; }
+        public DateTime UpdatedAt { get; private set; }
+        public DateTime LastNotifAt { get; set; }
+        //private Client _client;
+        //public Client Client
         //{
-        //    Id = id;
-        //    IsStaff = isStaff;
+        //    get
+        //    {
+        //        return _client;
+        //    }
+        //    set
+        //    {
+        //        Id = value.ClientId;
+        //        _client = value;
+        //    }
         //}
+
+        public ClientData(Client client)
+        {
+            Object = client;
+            CreatedAt = DateTime.UtcNow;
+        }
     }
 }

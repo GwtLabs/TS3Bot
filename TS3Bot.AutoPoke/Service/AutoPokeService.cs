@@ -21,7 +21,9 @@ namespace TS3Bot.Ext.AutoPoke.Model
         private Server Server = Interface.TS3Bot.GetLibrary<Server>();
         private IDictionary<uint, Timer> timers = new Dictionary<uint, Timer>();
         private IDictionary<uint, ChannelData> channels = new Dictionary<uint, ChannelData>();
-        //private IDictionary<uint, ClientData> clients = new Dictionary<uint, ClientData>();
+        private IDictionary<uint, ClientData> clients = new Dictionary<uint, ClientData>();
+
+        private Object TimersLock = new Object();
 
         #endregion Variables
 
@@ -55,11 +57,12 @@ namespace TS3Bot.Ext.AutoPoke.Model
                     return;
                 }
 
-                Client client = Server.GetClient(e.ClientId);
-                if (client != null)
+                ClientData cd = GetClientData(e.ClientId);
+                if (cd == null)
                 {
-                    ch.Join(client);
+                    return;
                 }
+                ch.Join(cd);
 
                 if (ch.NeedHelp)
                 {
@@ -69,13 +72,30 @@ namespace TS3Bot.Ext.AutoPoke.Model
             }
         }
 
+        private ClientData GetClientData(uint clid)
+        {
+            if (clients.ContainsKey(clid))
+            {
+                return clients[clid];
+            }
+            Client client = Server.GetClient(clid);
+            if (client == null)
+            {
+                return null;
+            }
+            ClientData cld = new ClientData(client);
+            clients.Add(clid, cld);
+
+            return cld;
+        }
+
         #endregion Methods
 
         #region Helpers
 
         private bool WasOnTackedChannel(uint clid)
         {
-            return channels.Any(c => c.Value.Clients.Any(cl => cl.Id == clid));
+            return channels.Any(c => c.Value.Clients.Any(cl => cl.Object.ClientId == clid));
         }
 
         private void LeftTrackedChannel(uint clid)
@@ -90,42 +110,41 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
         private void UpdateTimers()
         {
-            foreach (var c in channels)
+            lock (TimersLock)
             {
-                if (!c.Value.NeedHelp && timers.ContainsKey(c.Value.Id))
+                foreach (var c in channels)
                 {
-                    timers[c.Value.Id].Stop();
-                    timers.Remove(c.Value.Id);
+                    if (!c.Value.NeedHelp && timers.ContainsKey(c.Value.Id))
+                    {
+                        timers[c.Value.Id].Stop();
+                        timers.Remove(c.Value.Id);
+                    }
                 }
             }
         }
 
         private void InitializeTimer(ChannelData channel)
         {
-            if (!timers.ContainsKey(channel.Id))
+            lock (TimersLock)
             {
-                Timer t = new Timer();
-                t.Interval = 1000;
-                t.Enabled = true;
-                t.Elapsed += delegate { ChannelTick(channel); };
-                //try
-                //{
-                timers.Add(channel.Id, t);
-                //}
-                //catch (Exception e)
-                //{
-                //    new Exception();
-                //}
+                if (!timers.ContainsKey(channel.Id))
+                {
+                    Timer t = new Timer();
+                    t.Interval = 1000;
+                    t.Enabled = true;
+                    t.Elapsed += delegate { ChannelTick(channel); };
+                    timers.Add(channel.Id, t);
+                }
             }
         }
 
         private void ChannelTick(ChannelData ch)
         {
-            //Server.GetClient(87);
             foreach (var c in ch.Clients)
             {
-                //new SendTextMessageCommand(MessageTarget.Client, c.Id, "Wait a moment, someone will come to soon.");
-                Console.WriteLine($"{DateTime.Now}: {c.Id} - Wait a moment, someone will come to soon.");
+                // "Wait a moment, someone will come to soon."
+                Console.WriteLine($"{DateTime.Now}: {c.Object.ClientId} {c.CreatedAt} - Wait a moment, someone will come to soon.");
+                c.LastNotifAt = DateTime.UtcNow;
             }
         }
 

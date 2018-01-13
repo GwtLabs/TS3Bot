@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TS3Bot.Core.Model;
-using TS3QueryLib.Net.Core.Server.Entitities;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
@@ -12,6 +11,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
         private Object StatusLock = new Object();
         public uint Id { get; }
         public bool NeedHelp { get; private set; } = false;
+        public DateTime NeedHelpAt { get; private set; } = DateTime.MinValue;
         public bool WasStaff { get; private set; } = false;
         public List<ClientData> Clients { get; } = new List<ClientData>();
         public List<StaffGroupData> StaffGroups { get; private set; } = new List<StaffGroupData>();
@@ -28,26 +28,25 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
         private void SetDefaultStatus()
         {
+            NeedHelpAt = DateTime.MinValue;
             NeedHelp = false;
             WasStaff = false;
         }
 
-        public void Join(Client client)
+        public void Join(ClientData cd)
         {
             // client.ClientType:   0 - normal, 1 - query
-            if (client.ClientType != 0)
+            if (cd.Object.ClientType != 0)
             {
                 return;
             }
 
-            ClientData cld = new ClientData() { Client = client };
             lock (StatusLock)
             {
-                if (StaffGroups.Exists(g => client.ServerGroups.Contains(g.Id)))
+                if (IsStaff(cd.Object))
                 {
                     WasStaff = true;
                     NeedHelp = false;
-                    cld.IsStaff = true;
                 }
                 else
                 {
@@ -58,12 +57,17 @@ namespace TS3Bot.Ext.AutoPoke.Model
                 }
             }
 
-            Clients.Add(cld);
+            Clients.Add(cd);
+        }
+
+        public bool IsStaff(Client client)
+        {
+            return StaffGroups.Exists(g => client.ServerGroups.Contains(g.Id));
         }
 
         public void Left(uint clid)
         {
-            Clients.RemoveAll(c => c.Id == clid);
+            Clients.RemoveAll(c => c.Object.ClientId == clid);
             lock (StatusLock)
             {
                 if (IsEmpty())
