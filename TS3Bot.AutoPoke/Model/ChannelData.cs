@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using TS3Bot.Core.Model;
 
 namespace TS3Bot.Ext.AutoPoke.Model

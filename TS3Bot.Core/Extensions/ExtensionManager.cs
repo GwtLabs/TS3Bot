@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using TS3Bot.Core.Libraries;
+using TS3Bot.Core.Logging;
 using TS3QueryLib.Net.Core.Server.Notification;
 
 namespace TS3Bot.Core.Extensions
@@ -9,21 +10,24 @@ namespace TS3Bot.Core.Extensions
     public sealed class ExtensionManager
     {
         // All registered extensions
-        public IList<Extension> extensions { get; private set; }
+        public IList<Extension> Extensions { get; private set; }
 
         // All registered libraries
         private IDictionary<string, Library> libraries;
 
-        public ExtensionManager()
+        public ILogger Logger { get; private set; }
+
+        public ExtensionManager(ILogger logger)
         {
             // Initialize
-            extensions = new List<Extension>();
+            Extensions = new List<Extension>();
             libraries = new Dictionary<string, Library>();
+            Logger = logger;
         }
 
         public void AddExtension(Extension ext)
         {
-            extensions.Add(ext);
+            Extensions.Add(ext);
         }
 
         /// <summary>
@@ -63,7 +67,7 @@ namespace TS3Bot.Core.Extensions
             {
                 e.Value.RegisterNotifications(notifications);
             }
-            foreach (var e in extensions)
+            foreach (var e in Extensions)
             {
                 e.RegisterNotifications(notifications);
             }

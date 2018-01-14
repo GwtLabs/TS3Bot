@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using TS3Bot.Ext.AutoPoke.Model;
-using TS3Bot.Ext.AutoPoke.DTO;
 using System.Collections.Generic;
+using TS3Bot.Ext.AutoPoke.DTO;
+using TS3Bot.Ext.AutoPoke.Model;
 
 namespace TS3Bot.Ext.AutoPoke.Mappers
 {

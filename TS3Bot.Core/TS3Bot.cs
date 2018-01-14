@@ -14,6 +14,7 @@ using TS3Bot.Core.Configuration;
 using TS3Bot.Core.Extensions;
 using TS3Bot.Core.Libraries;
 using System.Collections.Generic;
+using TS3Bot.Core.Logging;
 
 namespace TS3Bot.Core
 {
@@ -24,6 +25,8 @@ namespace TS3Bot.Core
 
         public IQueryClient QueryClient;
 
+        public ConsoleLogger RootLogger { get; private set; }
+
         public TS3Bot()
         {
         }
@@ -33,6 +36,10 @@ namespace TS3Bot.Core
         /// </summary>
         public void Load()
         {
+            RootLogger = new ConsoleLogger();
+
+            LogInfo("Loading TS3Bot Core...");
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("ts3bot.config.json", optional: false, reloadOnChange: true)
@@ -47,8 +54,9 @@ namespace TS3Bot.Core
             //configuration.GetSection("PokeBot").Bind(moduleSettings);
 
 
-            extensionManager = new ExtensionManager();
+            extensionManager = new ExtensionManager(RootLogger);
 
+            LogInfo("Loading extensions...");
             extensionManager.RegisterLibrary("Lang", new Lang());
             extensionManager.RegisterLibrary("Server", new Server());
         }
@@ -63,11 +71,12 @@ namespace TS3Bot.Core
 
         public IList<Extension> Extensions()
         {
-            return extensionManager.extensions;
+            return extensionManager.Extensions;
         }
 
         public void Run()
         {
+            LogInfo("Registering notifications...");
             NotificationHub notifications = new NotificationHub();
 
             notifications.ClientJoined.Triggered += ClientJoined_Triggered;
@@ -143,6 +152,19 @@ namespace TS3Bot.Core
 
 
 
+        #region Logging
+        
+        public void LogDebug(string format, params object[] args) => RootLogger.Write(LogType.Warning, format, args);
+        
+        public void LogError(string format, params object[] args) => RootLogger.Write(LogType.Error, format, args);
+        
+        public void LogException(string message, Exception ex) => RootLogger.WriteException(message, ex);
+        
+        public void LogInfo(string format, params object[] args) => RootLogger.Write(LogType.Info, format, args);
+        
+        public void LogWarning(string format, params object[] args) => RootLogger.Write(LogType.Warning, format, args);
+
+        #endregion Logging
 
 
         private static void Client_ConnectionClosed(object sender, EventArgs<string> e)

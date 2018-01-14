@@ -1,17 +1,14 @@
-﻿using AutoMapper;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Timers;
-using TS3QueryLib.Net.Core.Server.Commands;
-using TS3QueryLib.Net.Core.Server.Entitities;
-using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
-using TS3QueryLib.Net.Core.Common.CommandHandling;
 using TS3Bot.Core;
 using TS3Bot.Core.Libraries;
-using System.Linq;
+using TS3Bot.Core.Logging;
 using TS3Bot.Core.Model;
-using TS3Bot.Core.Extensions;
+using TS3QueryLib.Net.Core.Common.CommandHandling;
+using TS3QueryLib.Net.Core.Server.Commands;
+using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
@@ -20,6 +17,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
         #region Variables
 
         private AutoPokeExtension extension;
+        private ILogger log = Interface.TS3Bot.RootLogger;
         private Server Server = Interface.TS3Bot.GetLibrary<Server>();
         private Lang lang = Interface.TS3Bot.GetLibrary<Lang>();
         private IDictionary<uint, Timer> timers = new Dictionary<uint, Timer>();
@@ -61,7 +59,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
             {
                 UpdateTimers();
 
-                Console.WriteLine($"{DateTime.Now}: {e.ClientId} - On target channel {e.TargetChannelId}.");
+                log.Info($"{DateTime.Now}: Client (clid:{e.ClientId}) moved to channel (cid:{e.TargetChannelId}).");
 
                 ChannelData ch = channels[e.TargetChannelId];
 
@@ -131,7 +129,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
                     {
                         timers[cd.Id].Stop();
                         timers.Remove(cd.Id);
-                        Console.WriteLine($"Removed timer for cid:{cd.Id}");
+                        log.Info($"Removed timer for (cid:{cd.Id}).");
                     }
                 }
             }
@@ -144,11 +142,11 @@ namespace TS3Bot.Ext.AutoPoke.Model
                 if (!timers.ContainsKey(cd.Id))
                 {
                     Timer t = new Timer();
-                    t.Interval = 3000;
+                    t.Interval = 1800;
                     t.Enabled = true;
                     t.Elapsed += delegate { ChannelTick(cd); };
                     timers.Add(cd.Id, t);
-                    Console.WriteLine($"Added timer for cid:{cd.Id}");
+                    log.Info($"Added timer for (cid:{cd.Id}).");
                 }
             }
         }
@@ -176,7 +174,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
                         var cd = GetClientData(s.ClientId);
                         if (!cd.HasNotifCooldown(staffNotifCooldown))
                         {
-                            Console.WriteLine($"{DateTime.UtcNow}: [StaffMsg] {ch.Id} {cd.Object.ClientCountry} {cd.Object.ClientId} {cd.CreatedAt}");
+                            log.Info($"Staff Notice (clid:{cd.Object.ClientId}) per (cid:{ch.Id}).");
                             if (ch.WasStaff)
                                 return;
                             new ClientPokeCommand(s.ClientId, lang.GetMessage("StaffNotification", extension, s.ClientId)
@@ -187,7 +185,14 @@ namespace TS3Bot.Ext.AutoPoke.Model
                     }
                     //ch.NextLevel();
                 }
-                clientMsgKey = "UserNotification";
+                if (!ch.LongerTime(maxWaitingTimeWhenStaffIsOnline))
+                {
+                    clientMsgKey = "UserNotification";
+                }
+                else
+                {
+                    clientMsgKey = "UserStaffBusyNotification";
+                }
             }
             else
             {
@@ -199,11 +204,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
             {
                 if (!cd.HasNotifCooldown(userNotifCooldown))
                 {
-                    if (ch.LongerTime(maxWaitingTimeWhenStaffIsOnline))
-                    {
-                        clientMsgKey = "UserStaffBusyNotification";
-                    }
-                    Console.WriteLine($"{DateTime.UtcNow}: [ClientMsg] {ch.Id} {cd.Object.ClientId} {cd.CreatedAt} {clientMsgKey}");
+                    log.Info($"Client Notice '{clientMsgKey}' (clid:{cd.Object.ClientId}) per (cid:{ch.Id}).");
                     if (ch.WasStaff)
                         return;
                     new SendTextMessageCommand(MessageTarget.Client, cd.Object.ClientId, lang.GetMessage(clientMsgKey, extension, cd.Object.ClientId)

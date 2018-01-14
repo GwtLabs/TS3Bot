@@ -1,12 +1,12 @@
-﻿using TS3Bot.Core.Extensions;
-using TS3Bot.Ext.AutoPoke.DTO;
-using TS3QueryLib.Net.Core.Server.Notification;
-using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
+﻿using AutoMapper;
 using System;
 using System.Collections.Generic;
-using TS3Bot.Ext.AutoPoke.Model;
+using TS3Bot.Core.Extensions;
+using TS3Bot.Ext.AutoPoke.DTO;
 using TS3Bot.Ext.AutoPoke.Mappers;
-using AutoMapper;
+using TS3Bot.Ext.AutoPoke.Model;
+using TS3QueryLib.Net.Core.Server.Notification;
+using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
 
 namespace TS3Bot.Ext.AutoPoke
 {
