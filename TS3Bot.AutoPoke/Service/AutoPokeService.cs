@@ -32,7 +32,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
         private int delayStart = 5;
         private int staffNotifCooldown = 5;
         private int userNotifCooldown = 10;
-        private int notifLvlToBusyStaff = 2;
+        //private int notifLvlToBusyStaff = 2;
         private int maxWaitingTimeWhenStaffIsOnline = 20;
 
         #endregion Variables
@@ -172,6 +172,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
                     // Notifications for staff
                     foreach (var s in chStaffOnline)
                     {
+                        // TODO: czas reakcji, typ, bądź ignorowanie wiadmości idndywidualne dla każego z obsługi
                         var cd = GetClientData(s.ClientId);
                         if (!cd.HasNotifCooldown(staffNotifCooldown))
                         {

@@ -60,7 +60,7 @@ namespace TS3Bot.Core.Libraries
                 return defaultLang;
             }
             var client = Server.GetClient(clid);
-            if (client != null && !string.IsNullOrEmpty(client.ClientCountry)) return client.ClientCountry;
+            if (client != null && !string.IsNullOrEmpty(client.ClientCountry.ToLower())) return client.ClientCountry;
 
             return defaultLang;
         }
