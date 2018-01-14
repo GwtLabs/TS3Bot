@@ -10,7 +10,6 @@ namespace TS3Bot.Ext.AutoPoke.Model
     {
         private Object StatusLock = new Object();
         public uint Id { get; }
-        public DateTime CreatedAt { get; private set; }
         //public uint NotificationLevel { get; private set; }
         public bool NeedHelp { get; private set; } = false;
         public DateTime NeedHelpAt { get; private set; } = DateTime.MinValue;
@@ -55,6 +54,14 @@ namespace TS3Bot.Ext.AutoPoke.Model
             string time = String.Format("{0}:{1}", (int)span.TotalMinutes, span.Seconds.ToString().PadLeft(2, '0'));
 
             return time;
+        }
+
+        public bool LongerTime(int seconds)
+        {
+            if (NeedHelpAt == DateTime.MinValue)
+                return false;
+
+            return NeedHelpAt < DateTime.UtcNow.AddSeconds(-seconds);
         }
 
         public void Join(ClientData cd)

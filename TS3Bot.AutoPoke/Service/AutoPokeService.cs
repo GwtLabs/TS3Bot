@@ -59,6 +59,8 @@ namespace TS3Bot.Ext.AutoPoke.Model
 
             if (channels.ContainsKey(e.TargetChannelId))
             {
+                UpdateTimers();
+
                 Console.WriteLine($"{DateTime.Now}: {e.ClientId} - On target channel {e.TargetChannelId}.");
 
                 ChannelData ch = channels[e.TargetChannelId];
@@ -123,35 +125,40 @@ namespace TS3Bot.Ext.AutoPoke.Model
         {
             lock (TimersLock)
             {
-                foreach (var c in channels.Values)
+                foreach (var cd in channels.Values)
                 {
-                    if (!c.NeedHelp && timers.ContainsKey(c.Id))
+                    if (!cd.NeedHelp && timers.ContainsKey(cd.Id))
                     {
-                        timers[c.Id].Stop();
-                        timers.Remove(c.Id);
-                        Console.WriteLine($"usunięto {c.Id}");
+                        timers[cd.Id].Stop();
+                        timers.Remove(cd.Id);
+                        Console.WriteLine($"Removed timer for cid:{cd.Id}");
                     }
                 }
             }
         }
 
-        private void InitializeTimer(ChannelData channel)
+        private void InitializeTimer(ChannelData cd)
         {
             lock (TimersLock)
             {
-                if (!timers.ContainsKey(channel.Id))
+                if (!timers.ContainsKey(cd.Id))
                 {
                     Timer t = new Timer();
                     t.Interval = 3000;
                     t.Enabled = true;
-                    t.Elapsed += delegate { ChannelTick(channel); };
-                    timers.Add(channel.Id, t);
+                    t.Elapsed += delegate { ChannelTick(cd); };
+                    timers.Add(cd.Id, t);
+                    Console.WriteLine($"Added timer for cid:{cd.Id}");
                 }
             }
         }
 
         private void ChannelTick(ChannelData ch)
         {
+            if (ch.WasStaff)
+            {
+                UpdateTimers();
+            }
             List<Client> chStaffOnline = Server.GetClientsWithGroups(ch.GetGroupList());
             string clientName = string.Join(", ", ch.Clients.Select(c => c.Object.Nickname));
             clientName = clientName.Substring(0, Math.Min(maxLengthNickname, clientName.Length));
@@ -160,15 +167,15 @@ namespace TS3Bot.Ext.AutoPoke.Model
             string clientMsgKey;
             if (chStaffOnline.Count > 0)
             {
-                if (ch.NeedHelpAt < DateTime.UtcNow.AddSeconds(-delayStart))
+                if (ch.LongerTime(delayStart))
                 {
                     // Notifications for staff
                     foreach (var s in chStaffOnline)
                     {
                         var cd = GetClientData(s.ClientId);
-                        if (cd.LastNotifAt < DateTime.UtcNow.AddSeconds(-staffNotifCooldown))
+                        if (!cd.HasNotifCooldown(staffNotifCooldown))
                         {
-                            Console.WriteLine($"{DateTime.UtcNow}: [StaffMsg] {ch.Id} {cd.Object.ClientId} {cd.CreatedAt}");
+                            Console.WriteLine($"{DateTime.UtcNow}: [StaffMsg] {ch.Id} {cd.Object.ClientCountry} {cd.Object.ClientId} {cd.CreatedAt}");
                             if (ch.WasStaff)
                                 return;
                             new ClientPokeCommand(s.ClientId, lang.GetMessage("StaffNotification", extension, s.ClientId)
@@ -186,13 +193,12 @@ namespace TS3Bot.Ext.AutoPoke.Model
                 clientMsgKey = "UserNoStaffOnlineNotification";
             }
 
-
             // Notifications for clients
             foreach (var cd in ch.Clients)
             {
-                if (cd.LastNotifAt < DateTime.UtcNow.AddSeconds(-userNotifCooldown))
+                if (!cd.HasNotifCooldown(userNotifCooldown))
                 {
-                    if (cd.LastNotifAt < DateTime.UtcNow.AddSeconds(-maxWaitingTimeWhenStaffIsOnline))
+                    if (ch.LongerTime(maxWaitingTimeWhenStaffIsOnline))
                     {
                         clientMsgKey = "UserStaffBusyNotification";
                     }
