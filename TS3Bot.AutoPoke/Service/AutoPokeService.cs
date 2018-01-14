@@ -6,6 +6,7 @@ using TS3Bot.Core;
 using TS3Bot.Core.Libraries;
 using TS3Bot.Core.Logging;
 using TS3Bot.Core.Model;
+using TS3Bot.Ext.AutoPoke.DTO;
 using TS3QueryLib.Net.Core.Common.CommandHandling;
 using TS3QueryLib.Net.Core.Server.Commands;
 using TS3QueryLib.Net.Core.Server.Notification.EventArgs;
@@ -17,27 +18,21 @@ namespace TS3Bot.Ext.AutoPoke.Model
         #region Variables
 
         private AutoPokeExtension extension;
+        private ConfigDTO config;
         private ILogger log = Interface.TS3Bot.RootLogger;
         private Server Server = Interface.TS3Bot.GetLibrary<Server>();
         private Lang lang = Interface.TS3Bot.GetLibrary<Lang>();
         private IDictionary<uint, Timer> timers = new Dictionary<uint, Timer>();
         private IDictionary<uint, ChannelData> channels = new Dictionary<uint, ChannelData>();
         private IDictionary<uint, ClientData> clients = new Dictionary<uint, ClientData>();
-
         private Object TimersLock = new Object();
-
-        private int maxLengthNickname = 20;
-        private int delayStart = 5;
-        private int staffNotifCooldown = 5;
-        private int userNotifCooldown = 10;
-        //private int notifLvlToBusyStaff = 2;
-        private int maxWaitingTimeWhenStaffIsOnline = 20;
 
         #endregion Variables
 
-        public AutoPokeService(AutoPokeExtension e)
+        public AutoPokeService(AutoPokeExtension e, ConfigDTO config)
         {
             extension = e;
+            this.config = config;
         }
 
         #region Methods
@@ -158,21 +153,21 @@ namespace TS3Bot.Ext.AutoPoke.Model
                 UpdateTimers();
             }
             List<Client> chStaffOnline = Server.GetClientsWithGroups(ch.GetGroupList());
-            string clientName = string.Join(", ", ch.Clients.Select(c => c.Object.Nickname));
-            clientName = clientName.Substring(0, Math.Min(maxLengthNickname, clientName.Length));
             Channel channel = Server.GetChannel(ch.Id);
 
             string clientMsgKey;
             if (chStaffOnline.Count > 0)
             {
-                if (ch.LongerTime(delayStart))
+                if (ch.LongerTime(config.DelayNotifStart))
                 {
+                    string clientName = string.Join(", ", ch.Clients.Select(c => c.Object.Nickname));
+                    clientName = clientName.Substring(0, Math.Min(config.MaxLengthNicknames, clientName.Length));
                     // Notifications for staff
                     foreach (var s in chStaffOnline)
                     {
                         // TODO: czas reakcji, typ, bądź ignorowanie wiadmości idndywidualne dla każego z obsługi
                         var cd = GetClientData(s.ClientId);
-                        if (!cd.HasNotifCooldown(staffNotifCooldown))
+                        if (!cd.HasNotifCooldown(config.StaffNotifCooldown))
                         {
                             log.Info($"Staff Notice (clid:{cd.Object.ClientId}) per (cid:{ch.Id}).");
                             if (ch.WasStaff)
@@ -185,7 +180,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
                     }
                     //ch.NextLevel();
                 }
-                if (!ch.LongerTime(maxWaitingTimeWhenStaffIsOnline))
+                if (!ch.LongerTime(config.MaxWaitingTimeWhenStaffIsOnline))
                 {
                     clientMsgKey = "UserNotification";
                 }
@@ -202,7 +197,7 @@ namespace TS3Bot.Ext.AutoPoke.Model
             // Notifications for clients
             foreach (var cd in ch.Clients)
             {
-                if (!cd.HasNotifCooldown(userNotifCooldown))
+                if (!cd.HasNotifCooldown(config.UserNotifCooldown))
                 {
                     log.Info($"Client Notice '{clientMsgKey}' (clid:{cd.Object.ClientId}) per (cid:{ch.Id}).");
                     if (ch.WasStaff)

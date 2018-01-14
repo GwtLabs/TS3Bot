@@ -14,7 +14,7 @@ namespace TS3Bot.Ext.AutoPoke
     {
         public override string Name => "AutoPoke";
 
-        private static ConfigDTO config;
+        public static ConfigDTO Config { get; private set; }
         private static IMapper mapper;
         private static AutoPokeService channelService;
 
@@ -23,15 +23,15 @@ namespace TS3Bot.Ext.AutoPoke
 
         public AutoPokeExtension()
         {
-            config = GetConfig<ConfigDTO>();
-            if (config.Enabled)
+            Config = GetConfig<ConfigDTO>();
+            if (Config.Enabled)
             {
                 mapper = AutoMapperConfig.Initialize();
 
                 events = new Dictionary<uint, bool>();
-                channelService = new AutoPokeService(this);
+                channelService = new AutoPokeService(this, Config);
 
-                foreach (var c in config.Channels)
+                foreach (var c in Config.Channels)
                 {
                     channelService.AddChannel(mapper.Map<ChannelDTO, ChannelData>(c));
                 }
@@ -40,6 +40,8 @@ namespace TS3Bot.Ext.AutoPoke
 
         protected override void LoadDefaultConfig()
         {
+            log.Notice("Creating a new configuration file!");
+
             SetConfig(new ConfigDTO()
             {
                 Enabled = true,
