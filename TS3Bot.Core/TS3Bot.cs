@@ -21,7 +21,7 @@ namespace TS3Bot.Core
     public sealed class TS3Bot
     {
         private ExtensionManager extensionManager;
-        public Ts3BotConfig Config { get; set; }
+        public Ts3BotConfig Config { get; private set; }
 
         public IQueryClient QueryClient;
 

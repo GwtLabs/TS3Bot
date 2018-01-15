@@ -65,9 +65,9 @@ namespace TS3Bot.Ext.AutoPoke
             lang.RegisterMessages(new Dictionary<string, string>
             {
                 ["UserNotification"] = "[b][color=green]Dear {ClientName}[/color]. [color=red]Wait a moment, someone will come to soon.[/color][/b]",
-                ["UserStaffBusyNotification"] = "[b]Wszyscy admini wydają się być aktualnie czymś zajęci i nie mogą w tej chwili pomóc. Możesz poczekąć (zapewne dłużej niż zwykle), albo spróbować ponownie trochę później.[/b]",
-                ["UserNoStaffOnlineNotification"] = "[b]Przepraszamy, ale w tej chwili nie ma ani jednego admina online. Spróbuj ponownie później.[/b]",
-                ["StaffNotification"] = "[u]#{Time}[/u] [b]{ClientName}[/b] czeka na [b]{ChannelName}[/b]",
+                ["UserStaffBusyNotification"] = "[b]All admins seem to be currently busy with something and can not help at the moment. You can wait (probably longer than usual), or try again a little later.[/b]",
+                ["UserNoStaffOnlineNotification"] = "[b]Sorry, but at the moment there is no one from the channel service. Please try again later.[/b]",
+                ["StaffNotification"] = "[u]#{Time}[/u] [b]{ClientName}[/b] waiting on [b]{ChannelName}[/b]",
             }, this);
 
             // Polish
@@ -75,7 +75,7 @@ namespace TS3Bot.Ext.AutoPoke
             {
                 ["UserNotification"] = "[b][color=green]Drogi {ClientName}[/color]. [color=red]Administracja została powiadomiona o Twoim pobycie na tym kanale. Za chwilę ktoś Ci pomoże.[/color][/b]",
                 ["UserStaffBusyNotification"] = "[b]Wszyscy admini wydają się być aktualnie czymś zajęci i nie mogą w tej chwili pomóc. Możesz poczekąć (zapewne dłużej niż zwykle), albo spróbować ponownie trochę później.[/b]",
-                ["UserNoStaffOnlineNotification"] = "[b]Przepraszamy, ale w tej chwili nie ma ani jednego admina online. Spróbuj ponownie później.[/b]",
+                ["UserNoStaffOnlineNotification"] = "[b]Przepraszamy, ale w tej chwili nie ma nikogo z obsługi kanału. Spróbuj ponownie później.[/b]",
                 ["StaffNotification"] = "[u]#{Time}[/u] [b]{ClientName}[/b] czeka na [b]{ChannelName}[/b]",
             }, this, "pl");
         }
