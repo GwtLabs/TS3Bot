@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using TS3Bot.Core.Model;
-using TS3QueryLib.Net.Core.Server.Entitities;
 
 namespace TS3Bot.Ext.AutoPoke.Model
 {
@@ -11,7 +9,9 @@ namespace TS3Bot.Ext.AutoPoke.Model
     {
         private Object StatusLock = new Object();
         public uint Id { get; }
+        //public uint NotificationLevel { get; private set; }
         public bool NeedHelp { get; private set; } = false;
+        public DateTime NeedHelpAt { get; private set; } = DateTime.MinValue;
         public bool WasStaff { get; private set; } = false;
         public List<ClientData> Clients { get; } = new List<ClientData>();
         public List<StaffGroupData> StaffGroups { get; private set; } = new List<StaffGroupData>();
@@ -21,39 +21,89 @@ namespace TS3Bot.Ext.AutoPoke.Model
             Id = id;
         }
 
-        public void Join(Client client)
+        public bool IsEmpty()
         {
-            ClientData cld = new ClientData() { Client = client };
+            return !Clients.Any();
+        }
+
+        //public void NextLevel()
+        //{
+        //    NotificationLevel++;
+        //}
+
+        public List<uint> GetGroupList()
+        {
+            return StaffGroups.Select(g => g.Id).ToList();
+        }
+
+        private void SetDefaultStatus()
+        {
+            NeedHelpAt = DateTime.MinValue;
+            NeedHelp = false;
+            WasStaff = false;
+        }
+
+        public string Time()
+        {
+            if (NeedHelpAt == DateTime.MinValue)
+            {
+                return null;
+            }
+            TimeSpan span = (DateTime.UtcNow - NeedHelpAt);
+            string time = String.Format("{0}:{1}", (int)span.TotalMinutes, span.Seconds.ToString().PadLeft(2, '0'));
+
+            return time;
+        }
+
+        public bool LongerTime(int seconds)
+        {
+            if (NeedHelpAt == DateTime.MinValue)
+                return false;
+
+            return NeedHelpAt < DateTime.UtcNow.AddSeconds(-seconds);
+        }
+
+        public void Join(ClientData cd)
+        {
+            // client.ClientType:   0 - normal, 1 - query
+            if (cd.Object.ClientType != 0)
+            {
+                return;
+            }
+
             lock (StatusLock)
             {
-                if (StaffGroups.Exists(g => client.ServerGroups.Contains(g.Id)))
+                if (IsStaff(cd.Object))
                 {
                     WasStaff = true;
                     NeedHelp = false;
-                    cld.IsStaff = true;
                 }
                 else
                 {
                     if (!NeedHelp)
                     {
                         NeedHelp = true;
+                        NeedHelpAt = DateTime.UtcNow;
                     }
                 }
             }
 
-            Clients.Add(cld);
+            Clients.Add(cd);
         }
 
-        public void Left(Client client)
+        public bool IsStaff(Client client)
         {
-            ClientData clientData = Clients.Where(c => c.Id == client.ClientId).First();
-            Clients.Remove(clientData);
+            return StaffGroups.Exists(g => client.ServerGroups.Contains(g.Id));
+        }
+
+        public void Left(uint clid)
+        {
+            Clients.RemoveAll(c => c.Object.ClientId == clid);
             lock (StatusLock)
             {
-                if (!Clients.Any())
+                if (IsEmpty())
                 {
-                    NeedHelp = false;
-                    WasStaff = false;
+                    SetDefaultStatus();
                 }
             }
         }

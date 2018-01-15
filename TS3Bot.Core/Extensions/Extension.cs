@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using TS3Bot.Core.Libraries;
-using TS3Bot.Core.Model;
+using TS3Bot.Core.Logging;
 using TS3QueryLib.Net.Core.Server.Notification;
 
 namespace TS3Bot.Core.Extensions
@@ -18,7 +15,24 @@ namespace TS3Bot.Core.Extensions
 
         public static Server Server = Interface.TS3Bot.GetLibrary<Server>();
 
+        public static Lang lang = Interface.TS3Bot.GetLibrary<Lang>();
+
+        public static ILogger log = Interface.TS3Bot.RootLogger;
+
+        protected virtual void LoadDefaultMessages() { }
+
         private static IConfig config;
+
+        protected ExtensionManager Manager;
+
+        public virtual void HandleAddedToManager(ExtensionManager manager)
+        {
+            Manager = manager;
+            //if (HasConfig) LoadConfig();
+            //if (HasMessages) LoadDefaultMessages();
+            LoadDefaultMessages();
+            //log = manager.Logger;
+        }
 
         protected void SaveConfig()
         {

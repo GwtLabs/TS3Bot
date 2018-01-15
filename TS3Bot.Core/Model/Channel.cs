@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using TS3QueryLib.Net.Core.Server.Entitities;
 
 namespace TS3Bot.Core.Model
 {
-    class Channel
+    public class Channel : ChannelListEntry
     {
+
     }
 }
