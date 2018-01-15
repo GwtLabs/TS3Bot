@@ -21,7 +21,7 @@ namespace TS3Bot.Core
     public sealed class TS3Bot
     {
         private ExtensionManager extensionManager;
-        private Ts3BotConfig config;
+        public Ts3BotConfig Config { get; set; }
 
         public IQueryClient QueryClient;
 
@@ -47,8 +47,8 @@ namespace TS3Bot.Core
 
             IConfigurationRoot configuration = builder.Build();
 
-            config = new Ts3BotConfig();
-            configuration.Bind(config);
+            Config = new Ts3BotConfig();
+            configuration.Bind(Config);
 
             //var moduleSettings = new PokeBot();
             //configuration.GetSection("PokeBot").Bind(moduleSettings);
@@ -104,14 +104,14 @@ namespace TS3Bot.Core
 
 
             // The client is configured to send a heartbeat every 30 seconds, the default is not to send a keep alive
-            QueryClient = new QueryClient(notificationHub: notifications, keepAliveInterval: TimeSpan.FromSeconds(30), host: config.Server.Host, port: config.Server.Query.Port);
+            QueryClient = new QueryClient(notificationHub: notifications, keepAliveInterval: TimeSpan.FromSeconds(30), host: Config.Server.Host, port: Config.Server.Query.Port);
             QueryClient.BanDetected += Client_BanDetected;
             QueryClient.ConnectionClosed += Client_ConnectionClosed;
             Connect(QueryClient);
 
             // username and password are random and only valid on my dev box. So dont bother
-            Console.WriteLine("Admin login:" + !new LoginCommand(config.Server.Query.Login, config.Server.Query.Password).Execute(QueryClient).IsErroneous);
-            Console.WriteLine("Switch to server with port 9987: " + !new UseCommand(config.Server.Port).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Admin login:" + !new LoginCommand(Config.Server.Query.Login, Config.Server.Query.Password).Execute(QueryClient).IsErroneous);
+            Console.WriteLine("Switch to server with port 9987: " + !new UseCommand(Config.Server.Port).Execute(QueryClient).IsErroneous);
 
             Console.WriteLine("Register notify [Server]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Server).Execute(QueryClient).IsErroneous);
             Console.WriteLine("Register notify [Channel]: " + !new ServerNotifyRegisterCommand(ServerNotifyRegisterEvent.Channel, 0).Execute(QueryClient).IsErroneous); // 0 = all channels
@@ -153,15 +153,15 @@ namespace TS3Bot.Core
 
 
         #region Logging
-        
+
         public void LogDebug(string format, params object[] args) => RootLogger.Write(LogType.Warning, format, args);
-        
+
         public void LogError(string format, params object[] args) => RootLogger.Write(LogType.Error, format, args);
-        
+
         public void LogException(string message, Exception ex) => RootLogger.WriteException(message, ex);
-        
+
         public void LogInfo(string format, params object[] args) => RootLogger.Write(LogType.Info, format, args);
-        
+
         public void LogWarning(string format, params object[] args) => RootLogger.Write(LogType.Warning, format, args);
 
         #endregion Logging

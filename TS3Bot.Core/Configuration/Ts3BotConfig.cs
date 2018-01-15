@@ -23,12 +23,13 @@
         {
             public string Name { get; set; }
             public ushort DefaultChannelId { get; set; }
+            public string DefaultLang { get; set; }
         }
 
         public Ts3BotConfig()
         {
             Server = new ServerOptions() { Host = "localhost", Port = 9987, Query = new ServerQueryOptions() { Port = 10011, Login = "serveradmin", Password = "" } };
-            Bot = new BotOptions() { Name = "[Bot] AutoPoke", DefaultChannelId = 1 };
+            Bot = new BotOptions() { Name = "[Bot] AutoPoke", DefaultChannelId = 1, DefaultLang = "en" };
         }
     }
 }

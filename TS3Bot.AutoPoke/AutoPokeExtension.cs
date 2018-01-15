@@ -40,7 +40,7 @@ namespace TS3Bot.Ext.AutoPoke
 
         protected override void LoadDefaultConfig()
         {
-            log.Notice("Creating a new configuration file!");
+            log.Warning("Creating a new configuration file!");
 
             SetConfig(new ConfigDTO()
             {

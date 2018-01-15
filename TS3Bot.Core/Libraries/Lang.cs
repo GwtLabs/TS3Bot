@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using TS3Bot.Core.Extensions;
+using TS3Bot.Core.Logging;
 using TS3QueryLib.Net.Core.Server.Notification;
 
 namespace TS3Bot.Core.Libraries
 {
     public class Lang : Library
     {
-        private const string defaultLang = "en";
+        private string defaultLang = Interface.TS3Bot.Config.Bot.DefaultLang;
         Dictionary<string, Dictionary<string, string>> _translations = new Dictionary<string, Dictionary<string, string>>();
 
         #region Initialization
@@ -25,8 +26,9 @@ namespace TS3Bot.Core.Libraries
 
         #endregion Notifications
 
-        public void RegisterMessages(Dictionary<string, string> translations, Extension ext, string lang = defaultLang)
+        public void RegisterMessages(Dictionary<string, string> translations, Extension ext, string lang = null)
         {
+            lang = lang ?? defaultLang;
             string langFile = $"{ext.Name}-{lang}";
             _translations.TryAdd(langFile, translations);
         }
@@ -38,14 +40,16 @@ namespace TS3Bot.Core.Libraries
             return GetMessageKey(key, ext, GetLanguage(clid));
         }
 
-        private string GetMessageKey(string key, Extension ext, string lang = defaultLang)
+        private string GetMessageKey(string key, Extension ext, string lang = null)
         {
+            lang = lang ?? defaultLang;
             string langFile = $"{ext.Name}-{lang}";
 
             Dictionary<string, string> trans = new Dictionary<string, string>();
 
-            if (_translations.TryGetValue(langFile, out trans))
+            if (!_translations.TryGetValue(langFile, out trans))
             {
+                Interface.TS3Bot.LogWarning(lang);
                 // try get langs
             }
 
